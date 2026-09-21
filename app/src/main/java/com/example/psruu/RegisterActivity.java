@@ -22,7 +22,9 @@ public class RegisterActivity extends AppCompatActivity {
 
     private static final int PICK_IMAGE_REQUEST = 1;
 
+    // เพิ่มตัวแปรสำหรับช่องทางการติดต่อ
     private EditText etRegName, etRegStudentId, etRegEmail, etRegPassword;
+    private EditText etRegFacebook, etRegInstagram, etRegPhone;
     private LinearLayout btnSelectProfileImage;
     private TextView tvSelectedImageStatus, tvBackToLogin;
     private Button btnRegister;
@@ -34,10 +36,17 @@ public class RegisterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
+        // ผูกตัวแปรกับหน้า UI (XML)
         etRegName = findViewById(R.id.etRegName);
         etRegStudentId = findViewById(R.id.etRegStudentId);
         etRegEmail = findViewById(R.id.etRegEmail);
         etRegPassword = findViewById(R.id.etRegPassword);
+
+        // ฟิลด์ช่องทางการติดต่อ (ตรวจสอบให้แน่ใจว่าใน activity_register.xml มี id ตรงกัน)
+        etRegFacebook = findViewById(R.id.etRegFacebook);
+        etRegInstagram = findViewById(R.id.etRegInstagram);
+        etRegPhone = findViewById(R.id.etRegPhone);
+
         btnSelectProfileImage = findViewById(R.id.btnSelectProfileImage);
         tvSelectedImageStatus = findViewById(R.id.tvSelectedImageStatus);
         btnRegister = findViewById(R.id.btnRegister);
@@ -52,6 +61,11 @@ public class RegisterActivity extends AppCompatActivity {
             String studentId = etRegStudentId.getText().toString().trim();
             String email = etRegEmail.getText().toString().trim();
             String password = etRegPassword.getText().toString().trim();
+
+            // ดึงค่าช่องทางการติดต่อ
+            String facebook = etRegFacebook != null ? etRegFacebook.getText().toString().trim() : "";
+            String instagram = etRegInstagram != null ? etRegInstagram.getText().toString().trim() : "";
+            String phone = etRegPhone != null ? etRegPhone.getText().toString().trim() : "";
 
             if (name.isEmpty() || studentId.isEmpty() || email.isEmpty() || password.isEmpty()) {
                 Toast.makeText(RegisterActivity.this, "กรุณากรอกข้อมูลให้ครบทุกช่อง", Toast.LENGTH_SHORT).show();
@@ -71,11 +85,17 @@ public class RegisterActivity extends AppCompatActivity {
             editor.putString("USER_EMAIL", email);
             editor.putString("USER_PASSWORD", password);
             editor.putString("USER_IMAGE", profileImageUriStr);
+
+            // บันทึกช่องทางการติดต่อเพิ่มเติม
+            editor.putString("USER_FACEBOOK", facebook);
+            editor.putString("USER_INSTAGRAM", instagram);
+            editor.putString("USER_PHONE", phone);
+
             editor.apply();
 
             Toast.makeText(RegisterActivity.this, "สมัครสมาชิกสำเร็จ!", Toast.LENGTH_SHORT).show();
 
-            // กลับไปหน้าก่อนหน้า (Login)
+            // กลับไปหน้าก่อนหน้า (Login หรือ หน้าหลัก)
             finish();
         });
 

@@ -2,18 +2,17 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F8F9FA"
+    android:background="#F5F7F6"
     android:orientation="vertical">
 
-    <!-- ส่วนหัวแอป -->
+    <!-- ส่วนหัวแอปพลิเคชัน (Top Bar) -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="60dp"
         android:background="#00794C"
         android:gravity="center_vertical"
-        android:paddingHorizontal="16dp"
-        android:paddingTop="36dp"
-        android:paddingBottom="12dp">
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp">
 
         <LinearLayout
             android:layout_width="0dp"
@@ -26,131 +25,233 @@
                 android:layout_height="wrap_content"
                 android:text="PSRU Swap"
                 android:textColor="#FFFFFF"
-                android:textSize="16sp"
+                android:textSize="18sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="ตลาดนัดส่งต่อของ ม.ราชภัฏพิบูลสงคราม"
-                android:textColor="#E2F0EC"
-                android:textSize="11sp" />
+                android:textColor="#E0F2F1"
+                android:textSize="10sp" />
         </LinearLayout>
 
-        <TextView
+        <Button
+            android:id="@+id/btnAddPost"
             android:layout_width="wrap_content"
             android:layout_height="36dp"
-            android:layout_marginRight="8dp"
-            android:background="#00A86B"
-            android:gravity="center"
-            android:paddingHorizontal="12dp"
+            android:layout_marginEnd="12dp"
+            android:backgroundTint="#00A86B"
             android:text="+ ลงประกาศ"
             android:textColor="#FFFFFF"
-            android:textSize="12sp"
-            android:textStyle="bold" />
+            android:textSize="12sp" />
 
-        <View
-            android:layout_width="34dp"
-            android:layout_height="34dp"
-            android:background="#E2F0EC" />
+        <ImageView
+            android:id="@+id/ivToolbarProfile"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="@drawable/ic_launcher_foreground"
+            android:scaleType="centerCrop" />
     </LinearLayout>
 
-    <!-- เนื้อหาหลัก (เลื่อนได้) -->
+    <!-- เนื้อหาเลื่อนได้ -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:fillViewport="true">
+        android:fillViewport="true"
+        android:padding="16dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:orientation="vertical">
 
-            <!-- การ์ดข้อมูลโปรไฟล์ -->
+            <!-- การ์ดข้อมูลโปรไฟล์หลัก -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:background="#FFFFFF"
-                android:elevation="1dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="16dp">
-
-                <ImageView
-                    android:id="@+id/ivProfileImage"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:background="#00794C"
-                    android:scaleType="centerCrop" />
+                android:background="@drawable/bg_dialog_rounded"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:elevation="2dp"
+                android:layout_marginBottom="16dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="14dp"
-                    android:orientation="vertical">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp">
 
-                    <TextView
-                        android:id="@+id/tvProfileName"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="กัญญาณี ศรีสุข"
-                        android:textColor="#212529"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
+                    <!-- [มี id สำหรับรูปโปรไฟล์] -->
+                    <ImageView
+                        android:id="@+id/ivProfileImage"
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/ic_launcher_foreground" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="✨ นักศึกษาคณะวิทยาศาสตร์และเทคโนโลยี"
-                        android:textColor="#00794C"
-                        android:textSize="11sp" />
+                        android:layout_weight="1"
+                        android:layout_marginStart="12dp"
+                        android:orientation="vertical">
 
-                    <TextView
-                        android:id="@+id/tvProfileStudentId"
-                        android:layout_width="wrap_content"
+                        <TextView
+                            android:id="@+id/tvProfileName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="กัญญาณี ศรีสุข"
+                            android:textColor="#222222"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvProfileFaculty"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="✨ นักศึกษาคณะวิทยาศาสตร์และเทคโนโลยี"
+                            android:textColor="#D97706"
+                            android:textSize="12sp"
+                            android:layout_marginTop="2dp" />
+
+                        <TextView
+                            android:id="@+id/tvProfileStudentId"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🆔 รหัสนักศึกษา: 6812247005"
+                            android:textColor="#666666"
+                            android:textSize="12sp"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- ช่องทางการติดต่อ -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="#F8F9FA"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:padding="10dp">
+
+                    <!-- Facebook -->
+                    <LinearLayout
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="รหัสนักศึกษา: 6812247005"
-                        android:textColor="#666666"
-                        android:textSize="11sp" />
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Facebook"
+                            android:textColor="#666666"
+                            android:textSize="11sp" />
+                        <TextView
+                            android:id="@+id/tvProfileFacebook"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Kanyanee Srisuk"
+                            android:textColor="#1877F2"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:maxLines="1"
+                            android:ellipsize="end" />
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="24dp"
+                        android:background="#DDDDDD" />
+
+                    <!-- Instagram -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Instagram"
+                            android:textColor="#666666"
+                            android:textSize="11sp" />
+                        <TextView
+                            android:id="@+id/tvProfileInstagram"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="kan_psru"
+                            android:textColor="#E4405F"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:maxLines="1"
+                            android:ellipsize="end" />
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="24dp"
+                        android:background="#DDDDDD" />
+
+                    <!-- เบอร์โทร -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="เบอร์โทร"
+                            android:textColor="#666666"
+                            android:textSize="11sp" />
+                        <TextView
+                            android:id="@+id/tvProfilePhone"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="089-123-4567"
+                            android:textColor="#00794C"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:maxLines="1"
+                            android:ellipsize="end" />
+                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- แผงสถิติ 3 ช่อง -->
+            <!-- แผงสถิติผู้ใช้งาน -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp">
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_marginRight="4dp"
-                    android:background="#FFFFFF"
-                    android:elevation="1dp"
+                    android:background="@drawable/bg_dialog_rounded"
                     android:gravity="center"
                     android:orientation="vertical"
-                    android:paddingVertical="14dp">
-
+                    android:padding="12dp"
+                    android:layout_marginEnd="6dp"
+                    android:elevation="1dp">
                     <TextView
                         android:id="@+id/tvPostCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="0"
                         android:textColor="#00794C"
-                        android:textSize="16sp"
+                        android:textSize="18sp"
                         android:textStyle="bold" />
-
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
                         android:text="ประกาศของฉัน"
                         android:textColor="#666666"
                         android:textSize="11sp" />
@@ -160,26 +261,23 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_marginHorizontal="4dp"
-                    android:background="#FFFFFF"
-                    android:elevation="1dp"
+                    android:background="@drawable/bg_dialog_rounded"
                     android:gravity="center"
                     android:orientation="vertical"
-                    android:paddingVertical="14dp">
-
+                    android:padding="12dp"
+                    android:layout_marginHorizontal="3dp"
+                    android:elevation="1dp">
                     <TextView
                         android:id="@+id/tvReviewCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="4.9"
-                        android:textColor="#00794C"
-                        android:textSize="16sp"
+                        android:textColor="#D97706"
+                        android:textSize="18sp"
                         android:textStyle="bold" />
-
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
                         android:text="คะแนนรีวิว"
                         android:textColor="#666666"
                         android:textSize="11sp" />
@@ -189,72 +287,65 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_marginLeft="4dp"
-                    android:background="#FFFFFF"
-                    android:elevation="1dp"
+                    android:background="@drawable/bg_dialog_rounded"
                     android:gravity="center"
                     android:orientation="vertical"
-                    android:paddingVertical="14dp">
-
+                    android:padding="12dp"
+                    android:layout_marginStart="6dp"
+                    android:elevation="1dp">
                     <TextView
                         android:id="@+id/tvSuccessCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="12"
                         android:textColor="#00794C"
-                        android:textSize="16sp"
+                        android:textSize="18sp"
                         android:textStyle="bold" />
-
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
                         android:text="ส่งต่อสำเร็จ"
                         android:textColor="#666666"
                         android:textSize="11sp" />
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- หัวข้อ ประกาศของฉัน -->
+            <!-- หัวข้อประกาศของฉัน -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
                 android:text="ประกาศของฉัน"
-                android:textColor="#212529"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:textColor="#222222"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
 
-            <!-- Container สำหรับแสดงตารางการ์ดสินค้า 2 คอลัมน์แบบไดนามิก -->
+            <!-- พื้นที่แสดงรายการสินค้าแบบไดนามิก (Java จะนำการ์ดมาใส่ในนี้) -->
             <LinearLayout
                 android:id="@+id/layoutMyPostsGridContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:orientation="vertical" />
+                android:orientation="vertical"
+                android:layout_marginBottom="16dp" />
 
             <!-- ปุ่มออกจากระบบ -->
-            <TextView
+            <Button
                 android:id="@+id/btnLogout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="#FFF5F5"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center"
-                android:paddingVertical="12dp"
+                android:layout_height="48dp"
+                android:backgroundTint="#FEE2E2"
                 android:text="🚪 ออกจากระบบบัญชี PSRU"
                 android:textColor="#DC2626"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="16dp" />
         </LinearLayout>
     </ScrollView>
 
-    <!-- แถบเมนูด้านล่าง -->
+    <!-- เมนูด้านล่าง -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="52dp"
+        android:layout_height="56dp"
         android:background="#FFFFFF"
         android:elevation="8dp"
         android:orientation="horizontal">
@@ -266,19 +357,16 @@
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="vertical">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🏠" android:textSize="14sp" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ตลาดนัด" android:textColor="#666666" android:textSize="10sp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/navChat"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="💬" android:textSize="14sp" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="แชท" android:textColor="#666666" android:textSize="10sp" />
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/ic_menu_agenda" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ตลาดนัด"
+                android:textColor="#666666"
+                android:textSize="10sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -288,8 +376,16 @@
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="vertical">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="❤️" android:textSize="14sp" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="รายการโปรด" android:textColor="#666666" android:textSize="10sp" />
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/ic_menu_myplaces" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="รายการโปรด"
+                android:textColor="#666666"
+                android:textSize="10sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -299,9 +395,18 @@
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="vertical">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="👤" android:textSize="14sp" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="โปรไฟล์" android:textColor="#00794C" android:textSize="10sp" android:textStyle="bold" />
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/ic_menu_manage"
+                android:tint="#00794C" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="โปรไฟล์"
+                android:textColor="#00794C"
+                android:textSize="10sp"
+                android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
-
 </LinearLayout>

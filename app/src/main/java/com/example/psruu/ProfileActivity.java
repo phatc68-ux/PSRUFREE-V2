@@ -24,6 +24,7 @@ public class ProfileActivity extends AppCompatActivity {
 
     private LinearLayout layoutMyPostsGridContainer;
     private TextView tvPostCount, tvReviewCount, tvSuccessCount;
+    private TextView tvProfileFacebook, tvProfileInstagram, tvProfilePhone;
 
     private static class PostItem {
         String title;
@@ -44,6 +45,11 @@ public class ProfileActivity extends AppCompatActivity {
             tvPostCount = findViewById(R.id.tvPostCount);
             tvReviewCount = findViewById(R.id.tvReviewCount);
             tvSuccessCount = findViewById(R.id.tvSuccessCount);
+
+            // ผูกตัวแปรช่องทางการติดต่อ
+            tvProfileFacebook = findViewById(R.id.tvProfileFacebook);
+            tvProfileInstagram = findViewById(R.id.tvProfileInstagram);
+            tvProfilePhone = findViewById(R.id.tvProfilePhone);
 
             loadUserProfile();
             loadAndDisplayMyPostsGrid();
@@ -74,11 +80,21 @@ public class ProfileActivity extends AppCompatActivity {
             String studentId = prefs.getString("USER_STUDENT_ID", "6812247005");
             String imageUriStr = prefs.getString("USER_IMAGE", "");
 
+            // ดึงข้อมูลจริงจากหน้าสมัครสมาชิก
+            String facebook = prefs.getString("USER_FACEBOOK", "Kanyanee Srisuk");
+            String instagram = prefs.getString("USER_INSTAGRAM", "kan_psru");
+            String phone = prefs.getString("USER_PHONE", "089-123-4567");
+
             TextView tvProfileName = findViewById(R.id.tvProfileName);
             if (tvProfileName != null) tvProfileName.setText(name);
 
             TextView tvProfileStudentId = findViewById(R.id.tvProfileStudentId);
             if (tvProfileStudentId != null) tvProfileStudentId.setText("รหัสนักศึกษา: " + studentId);
+
+            // นำข้อมูลช่องทางติดต่อมาแสดงผลจริง
+            if (tvProfileFacebook != null) tvProfileFacebook.setText(facebook);
+            if (tvProfileInstagram != null) tvProfileInstagram.setText(instagram);
+            if (tvProfilePhone != null) tvProfilePhone.setText(phone);
 
             ImageView ivProfileImage = findViewById(R.id.ivProfileImage);
             if (ivProfileImage != null && imageUriStr != null && !imageUriStr.isEmpty()) {
@@ -272,7 +288,6 @@ public class ProfileActivity extends AppCompatActivity {
         return card;
     }
 
-    // ฟังก์ชันช่วยโหลดรูปโปรไฟล์อย่างปลอดภัย รองรับทั้ง Uri ภายใน (file://) และภายนอก (content://)
     private void safelySetImageUri(ImageView imageView, String uriStr) {
         try {
             if (uriStr.startsWith("file://")) {
@@ -341,17 +356,6 @@ public class ProfileActivity extends AppCompatActivity {
                     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                     startActivity(intent);
                     finish();
-                });
-            }
-
-            LinearLayout navChat = findViewById(R.id.navChat);
-            if (navChat != null) {
-                navChat.setOnClickListener(v -> {
-                    try {
-                        startActivity(new Intent(ProfileActivity.this, ChatActivity.class));
-                    } catch (Exception e) {
-                        Toast.makeText(this, "ยังไม่ได้สร้างหน้า ChatActivity", Toast.LENGTH_SHORT).show();
-                    }
                 });
             }
 

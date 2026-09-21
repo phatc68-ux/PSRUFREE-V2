@@ -1,177 +1,273 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F8F9FA"
-    android:gravity="center_horizontal"
-    android:orientation="vertical"
-    android:padding="24dp">
+    android:fillViewport="true">
 
-    <!-- ส่วนหัวโลโก้ / ชื่อแอป -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="8dp"
-        android:text="PSRU Swap 🎓"
-        android:textColor="#00794C"
-        android:textSize="22sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="24dp"
-        android:text="สร้างบัญชีใหม่เพื่อใช้งานตลาดนัดออนไลน์"
-        android:textColor="#666666"
-        android:textSize="12sp" />
-
-    <!-- ฟอร์มกรอกข้อมูล -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#FFFFFF"
+        android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:padding="20dp"
-        android:elevation="2dp">
+        android:padding="24dp">
 
-        <!-- ชื่อ-นามสกุล -->
+        <!-- ส่วนหัวโลโก้ / ชื่อแอป -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:text="ชื่อ-นามสกุล"
-            android:textColor="#333333"
-            android:textSize="12sp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="8dp"
+            android:text="PSRU Swap 🎓"
+            android:textColor="#00794C"
+            android:textSize="22sp"
             android:textStyle="bold" />
 
-        <EditText
-            android:id="@+id/etRegName"
-            android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:layout_marginBottom="12dp"
-            android:background="#F8F9FA"
-            android:hint="เช่น สมชาย ใจดี"
-            android:inputType="textPersonName"
-            android:paddingHorizontal="12dp"
-            android:textSize="13sp" />
-
-        <!-- รหัสนักศึกษา -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:text="รหัสนักศึกษา"
-            android:textColor="#333333"
-            android:textSize="12sp"
-            android:textStyle="bold" />
+            android:layout_marginBottom="24dp"
+            android:text="สร้างบัญชีใหม่เพื่อใช้งานตลาดนัดออนไลน์"
+            android:textColor="#666666"
+            android:textSize="12sp" />
 
-        <EditText
-            android:id="@+id/etRegStudentId"
-            android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:layout_marginBottom="12dp"
-            android:background="#F8F9FA"
-            android:hint="เช่น 6812247005"
-            android:inputType="number"
-            android:paddingHorizontal="12dp"
-            android:textSize="13sp" />
-
-        <!-- อีเมล (มหาวิทยาลัย) -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:text="อีเมล (นักศึกษา / บุคลากร)"
-            android:textColor="#333333"
-            android:textSize="12sp"
-            android:textStyle="bold" />
-
-        <EditText
-            android:id="@+id/etRegEmail"
-            android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:layout_marginBottom="12dp"
-            android:background="#F8F9FA"
-            android:hint="เช่น student@psru.ac.th"
-            android:inputType="textEmailAddress"
-            android:paddingHorizontal="12dp"
-            android:textSize="13sp" />
-
-        <!-- รูปโปรไฟล์ (อัปโหลดรูปจากเครื่อง) -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:text="รูปโปรไฟล์ (อัปโหลดรูปจากเครื่อง)"
-            android:textColor="#333333"
-            android:textSize="12sp"
-            android:textStyle="bold" />
-
+        <!-- ฟอร์มกรอกข้อมูล -->
         <LinearLayout
-            android:id="@+id/btnSelectProfileImage"
             android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:layout_marginBottom="12dp"
-            android:background="#F8F9FA"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center_vertical"
-            android:paddingHorizontal="12dp">
+            android:layout_height="wrap_content"
+            android:background="#FFFFFF"
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:elevation="2dp">
 
+            <!-- ชื่อ-นามสกุล -->
             <TextView
-                android:id="@+id/tvSelectedImageStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="เลือกไฟล์ ไม่ได้เลือกไฟล์ใด"
-                android:textColor="#666666"
+                android:layout_marginBottom="4dp"
+                android:text="ชื่อ-นามสกุล"
+                android:textColor="#333333"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etRegName"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginBottom="12dp"
+                android:background="#F8F9FA"
+                android:hint="เช่น สมชาย ใจดี"
+                android:inputType="textPersonName"
+                android:paddingHorizontal="12dp"
                 android:textSize="13sp" />
+
+            <!-- รหัสนักศึกษา -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:text="รหัสนักศึกษา"
+                android:textColor="#333333"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etRegStudentId"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginBottom="12dp"
+                android:background="#F8F9FA"
+                android:hint="เช่น 6812247005"
+                android:inputType="number"
+                android:paddingHorizontal="12dp"
+                android:textSize="13sp" />
+
+            <!-- อีเมล (มหาวิทยาลัย) -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:text="อีเมล (นักศึกษา / บุคลากร)"
+                android:textColor="#333333"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etRegEmail"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginBottom="12dp"
+                android:background="#F8F9FA"
+                android:hint="เช่น student@psru.ac.th"
+                android:inputType="textEmailAddress"
+                android:paddingHorizontal="12dp"
+                android:textSize="13sp" />
+
+            <!-- แถวช่องทางติดต่อ: Facebook, Instagram, เบอร์โทร -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:orientation="horizontal">
+
+                <!-- Facebook -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginRight="4dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="4dp"
+                        android:text="Facebook"
+                        android:textColor="#333333"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/etRegFacebook"
+                        android:layout_width="match_parent"
+                        android:layout_height="42dp"
+                        android:background="#F8F9FA"
+                        android:hint="ชื่อเฟส"
+                        android:paddingHorizontal="8dp"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <!-- Instagram -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginHorizontal="2dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="4dp"
+                        android:text="Instagram"
+                        android:textColor="#333333"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/etRegInstagram"
+                        android:layout_width="match_parent"
+                        android:layout_height="42dp"
+                        android:background="#F8F9FA"
+                        android:hint="@ig"
+                        android:paddingHorizontal="8dp"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <!-- เบอร์โทร -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginLeft="4dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="4dp"
+                        android:text="เบอร์โทร"
+                        android:textColor="#333333"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/etRegPhone"
+                        android:layout_width="match_parent"
+                        android:layout_height="42dp"
+                        android:background="#F8F9FA"
+                        android:hint="08x-xxx"
+                        android:inputType="phone"
+                        android:paddingHorizontal="8dp"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- รูปโปรไฟล์ (อัปโหลดรูปจากเครื่อง) -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:text="รูปโปรไฟล์ (อัปโหลดรูปจากเครื่อง)"
+                android:textColor="#333333"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:id="@+id/btnSelectProfileImage"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginBottom="12dp"
+                android:background="#F8F9FA"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="12dp">
+
+                <TextView
+                    android:id="@+id/tvSelectedImageStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="เลือกไฟล์ ไม่ได้เลือกไฟล์ใด"
+                    android:textColor="#666666"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <!-- รหัสผ่าน -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:text="รหัสผ่าน"
+                android:textColor="#333333"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etRegPassword"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginBottom="20dp"
+                android:background="#F8F9FA"
+                android:hint="กำหนดรหัสผ่านอย่างน้อย 6 ตัวอักษร"
+                android:inputType="textPassword"
+                android:paddingHorizontal="12dp"
+                android:textSize="13sp" />
+
+            <!-- ปุ่มยืนยันสมัครสมาชิก -->
+            <Button
+                android:id="@+id/btnRegister"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:backgroundTint="#00794C"
+                android:text="สมัครสมาชิก"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- รหัสผ่าน -->
+        <!-- ปุ่มกลับไปหน้าเข้าสู่ระบบ -->
         <TextView
+            android:id="@+id/tvBackToLogin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:text="รหัสผ่าน"
-            android:textColor="#333333"
-            android:textSize="12sp"
+            android:layout_marginTop="16dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:text="มีบัญชีอยู่แล้ว? เข้าสู่ระบบที่นี่"
+            android:textColor="#00794C"
+            android:textSize="13sp"
             android:textStyle="bold" />
 
-        <EditText
-            android:id="@+id/etRegPassword"
-            android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:layout_marginBottom="20dp"
-            android:background="#F8F9FA"
-            android:hint="กำหนดรหัสผ่านอย่างน้อย 6 ตัวอักษร"
-            android:inputType="textPassword"
-            android:paddingHorizontal="12dp"
-            android:textSize="13sp" />
-
-        <!-- ปุ่มยืนยันสมัครสมาชิก -->
-        <Button
-            android:id="@+id/btnRegister"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:backgroundTint="#00794C"
-            android:text="สมัครสมาชิก"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp"
-            android:textStyle="bold" />
     </LinearLayout>
-
-    <!-- ปุ่มกลับไปหน้าเข้าสู่ระบบ -->
-    <TextView
-        android:id="@+id/tvBackToLogin"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:text="มีบัญชีอยู่แล้ว? เข้าสู่ระบบที่นี่"
-        android:textColor="#00794C"
-        android:textSize="13sp"
-        android:textStyle="bold" />
-
-</LinearLayout>
+</ScrollView>

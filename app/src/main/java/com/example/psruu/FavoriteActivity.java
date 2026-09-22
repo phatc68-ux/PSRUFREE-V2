@@ -28,12 +28,11 @@ public class FavoriteActivity extends AppCompatActivity {
         containerFavoriteProducts = findViewById(R.id.containerFavoriteProducts);
 
         // ==========================================
-        // เชื่อมโยงปุ่มเมนูด้านล่างให้กดสลับหน้าได้จริง
+        // เชื่อมโยงปุ่มเมนูด้านล่าง (ตัด navChat ออกแล้ว)
         // ==========================================
-        TextView navMarket = findViewById(R.id.navMarket);
-        TextView navChat = findViewById(R.id.navChat);
-        TextView navFavorite = findViewById(R.id.navFavorite);
-        TextView navProfile = findViewById(R.id.navProfile);
+        LinearLayout navMarket = findViewById(R.id.navMarket);
+        LinearLayout navFavorite = findViewById(R.id.navFavorite);
+        LinearLayout navProfile = findViewById(R.id.navProfile);
 
         if (navMarket != null) {
             navMarket.setOnClickListener(v -> {
@@ -45,17 +44,9 @@ public class FavoriteActivity extends AppCompatActivity {
             });
         }
 
-        if (navChat != null) {
-            navChat.setOnClickListener(v -> {
-                // ไปหน้าแชท
-                Intent intent = new Intent(FavoriteActivity.this, ChatActivity.class);
-                startActivity(intent);
-            });
-        }
-
         if (navFavorite != null) {
             navFavorite.setOnClickListener(v -> {
-                // อยู่หน้าหนี้อยู่แล้ว ไม่ต้องทำอะไร
+                // อยู่หน้าโปรดอยู่แล้ว ไม่ต้องทำอะไร
             });
         }
 

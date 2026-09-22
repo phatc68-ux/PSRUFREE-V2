@@ -51,10 +51,13 @@
         </LinearLayout>
 
         <TextView
+            android:id="@+id/btnOpenPost"
             android:layout_width="wrap_content"
             android:layout_height="32dp"
             android:layout_marginRight="10dp"
             android:background="#00A86B"
+            android:clickable="true"
+            android:focusable="true"
             android:gravity="center"
             android:paddingHorizontal="10dp"
             android:text="+ ลงประกาศ"
@@ -63,9 +66,12 @@
             android:textStyle="bold" />
 
         <View
+            android:id="@+id/btnHeaderProfile"
             android:layout_width="32dp"
             android:layout_height="32dp"
-            android:background="#E2F0EC" />
+            android:background="#E2F0EC"
+            android:clickable="true"
+            android:focusable="true" />
     </LinearLayout>
 
     <!-- เนื้อหาหลัก (รายการโปรด) -->
@@ -73,7 +79,9 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:padding="16dp">
+        android:fillViewport="true"
+        android:padding="16dp"
+        android:scrollbars="none">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -99,54 +107,92 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- แถบเมนูด้านล่าง -->
+    <!-- แถบเมนูด้านล่าง (Bottom Navigation) แบบ 3 ปุ่มที่จัดสัดส่วนเท่ากัน -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="52dp"
+        android:layout_height="56dp"
         android:background="#FFFFFF"
         android:elevation="8dp"
         android:orientation="horizontal">
 
-        <TextView
+        <!-- ปุ่มตลาดนัด -->
+        <LinearLayout
             android:id="@+id/navMarket"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
             android:gravity="center"
-            android:text="🏠\nตลาดนัด"
-            android:textColor="#666666"
-            android:textSize="10sp" />
+            android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/navChat"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="💬\nแชท"
-            android:textColor="#666666"
-            android:textSize="10sp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🏠"
+                android:textSize="14sp" />
 
-        <TextView
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ตลาดนัด"
+                android:textColor="#666666"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <!-- ปุ่มรายการโปรด (หน้าปัจจุบัน) -->
+        <LinearLayout
             android:id="@+id/navFavorite"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
             android:gravity="center"
-            android:text="❤️\nรายการโปรด"
-            android:textColor="#00794C"
-            android:textSize="10sp"
-            android:textStyle="bold" />
+            android:orientation="vertical">
 
-        <TextView
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="❤️"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="รายการโปรด"
+                android:textColor="#00794C"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- ปุ่มโปรไฟล์ -->
+        <LinearLayout
             android:id="@+id/navProfile"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
             android:gravity="center"
-            android:text="👤\nโปรไฟล์"
-            android:textColor="#666666"
-            android:textSize="10sp" />
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="👤"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="โปรไฟล์"
+                android:textColor="#666666"
+                android:textSize="10sp" />
+        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>

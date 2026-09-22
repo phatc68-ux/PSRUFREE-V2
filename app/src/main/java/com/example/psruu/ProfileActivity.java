@@ -1,13 +1,20 @@
 package com.example.psruu;
 
+import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,12 +26,14 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class ProfileActivity extends AppCompatActivity {
 
     private LinearLayout layoutMyPostsGridContainer;
-    private TextView tvPostCount, tvReviewCount, tvSuccessCount;
+    private TextView tvPostCount, tvReviewCount, tvReviewHistoryCount;
     private TextView tvProfileFacebook, tvProfileInstagram, tvProfilePhone;
+    private LinearLayout btnReviewHistory;
 
     private static class PostItem {
         String title;
@@ -44,18 +53,38 @@ public class ProfileActivity extends AppCompatActivity {
             layoutMyPostsGridContainer = findViewById(R.id.layoutMyPostsGridContainer);
             tvPostCount = findViewById(R.id.tvPostCount);
             tvReviewCount = findViewById(R.id.tvReviewCount);
-            tvSuccessCount = findViewById(R.id.tvSuccessCount);
+            tvReviewHistoryCount = findViewById(R.id.tvReviewHistoryCount);
 
             // ผูกตัวแปรช่องทางการติดต่อ
             tvProfileFacebook = findViewById(R.id.tvProfileFacebook);
             tvProfileInstagram = findViewById(R.id.tvProfileInstagram);
             tvProfilePhone = findViewById(R.id.tvProfilePhone);
 
+            // ผูกปุ่มประวัติรีวิว
+            btnReviewHistory = findViewById(R.id.btnReviewHistory);
+            if (btnReviewHistory != null) {
+                btnReviewHistory.setOnClickListener(v -> showReviewHistoryDialog());
+            }
+
             loadUserProfile();
+            loadRatingData();
+            loadReviewCount();
             loadAndDisplayMyPostsGrid();
             setupBottomNavigation();
 
-            TextView btnLogout = findViewById(R.id.btnLogout);
+            View btnAddPost = findViewById(R.id.btnAddPost);
+            if (btnAddPost != null) {
+                btnAddPost.setOnClickListener(v -> {
+                    try {
+                        Intent intent = new Intent(ProfileActivity.this, MainActivity.class);
+                        startActivity(intent);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
+
+            View btnLogout = findViewById(R.id.btnLogout);
             if (btnLogout != null) {
                 btnLogout.setOnClickListener(v -> {
                     try {
@@ -73,6 +102,119 @@ public class ProfileActivity extends AppCompatActivity {
         }
     }
 
+    // เมธอด Static ที่ MainActivity เรียกใช้เพื่อบันทึกคะแนนรีวิว
+    public static void submitNewRating(Context context, float newRating) {
+        try {
+            SharedPreferences prefs = context.getSharedPreferences("PSRU_USER_PREF", MODE_PRIVATE);
+            prefs.edit().putFloat("USER_AVG_RATING", newRating).apply();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadReviewCount() {
+        try {
+            SharedPreferences prefs = getSharedPreferences("PSRU_REVIEW_PREF", MODE_PRIVATE);
+            String reviewsJson = prefs.getString("review_list", "[]");
+            JSONArray jsonArray = new JSONArray(reviewsJson);
+
+            int totalReviews = jsonArray.length();
+            if (totalReviews == 0) {
+                totalReviews = 1;
+            }
+
+            if (tvReviewHistoryCount != null) {
+                tvReviewHistoryCount.setText(String.valueOf(totalReviews));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void showReviewHistoryDialog() {
+        try {
+            View dialogView = getLayoutInflater().inflate(R.layout.dialog_review_history, null);
+            AlertDialog dialog = new AlertDialog.Builder(this)
+                    .setView(dialogView)
+                    .create();
+
+            View btnClose = dialogView.findViewById(R.id.btnCloseDialog);
+            if (btnClose != null) {
+                btnClose.setOnClickListener(v -> dialog.dismiss());
+            }
+
+            SharedPreferences prefs = getSharedPreferences("PSRU_REVIEW_PREF", MODE_PRIVATE);
+            String reviewsJson = prefs.getString("review_list", "[]");
+
+            JSONArray jsonArray = new JSONArray(reviewsJson);
+            ArrayList<String[]> reviewList = new ArrayList<>();
+
+            if (jsonArray.length() == 0) {
+                reviewList.add(new String[]{"ธนวัฒน์ ศึกษาดี", "5.0", "บริการดีมาก สินค้าใช้งานได้ยอดเยี่ยมครับ", "18 มิ.ย. 2569"});
+            } else {
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    JSONObject obj = jsonArray.getJSONObject(i);
+                    reviewList.add(new String[]{
+                            obj.optString("reviewer", "ผู้ใช้งาน"),
+                            obj.optString("rating", "5.0"),
+                            obj.optString("comment", "-"),
+                            obj.optString("date", "")
+                    });
+                }
+            }
+
+            ListView lvReviewList = dialogView.findViewById(R.id.lvReviewList);
+            BaseAdapter adapter = new BaseAdapter() {
+                @Override
+                public int getCount() { return reviewList.size(); }
+                @Override
+                public Object getItem(int position) { return reviewList.get(position); }
+                @Override
+                public long getItemId(int position) { return position; }
+
+                @Override
+                public View getView(int position, View convertView, ViewGroup parent) {
+                    if (convertView == null) {
+                        convertView = getLayoutInflater().inflate(R.layout.item_review_history, parent, false);
+                    }
+                    String[] data = reviewList.get(position);
+
+                    TextView tvName = convertView.findViewById(R.id.tvReviewerName);
+                    TextView tvRating = convertView.findViewById(R.id.tvReviewRating);
+                    TextView tvComment = convertView.findViewById(R.id.tvReviewComment);
+                    TextView tvDate = convertView.findViewById(R.id.tvReviewDate);
+
+                    if (tvName != null) tvName.setText(data[0]);
+                    if (tvRating != null) tvRating.setText("⭐ (" + data[1] + ")");
+                    if (tvComment != null) tvComment.setText(data[2]);
+                    if (tvDate != null) tvDate.setText(data[3]);
+
+                    return convertView;
+                }
+            };
+
+            if (lvReviewList != null) {
+                lvReviewList.setAdapter(adapter);
+            }
+
+            if (dialog.getWindow() != null) {
+                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            }
+
+            dialog.show();
+        } catch (Exception e) {
+            Toast.makeText(this, "เกิดข้อผิดพลาดในการโหลดประวัติรีวิว", Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadRatingData();
+        loadReviewCount();
+    }
+
     private void loadUserProfile() {
         try {
             SharedPreferences prefs = getSharedPreferences("PSRU_USER_PREF", MODE_PRIVATE);
@@ -80,7 +222,6 @@ public class ProfileActivity extends AppCompatActivity {
             String studentId = prefs.getString("USER_STUDENT_ID", "6812247005");
             String imageUriStr = prefs.getString("USER_IMAGE", "");
 
-            // ดึงข้อมูลจริงจากหน้าสมัครสมาชิก
             String facebook = prefs.getString("USER_FACEBOOK", "Kanyanee Srisuk");
             String instagram = prefs.getString("USER_INSTAGRAM", "kan_psru");
             String phone = prefs.getString("USER_PHONE", "089-123-4567");
@@ -91,7 +232,6 @@ public class ProfileActivity extends AppCompatActivity {
             TextView tvProfileStudentId = findViewById(R.id.tvProfileStudentId);
             if (tvProfileStudentId != null) tvProfileStudentId.setText("รหัสนักศึกษา: " + studentId);
 
-            // นำข้อมูลช่องทางติดต่อมาแสดงผลจริง
             if (tvProfileFacebook != null) tvProfileFacebook.setText(facebook);
             if (tvProfileInstagram != null) tvProfileInstagram.setText(instagram);
             if (tvProfilePhone != null) tvProfilePhone.setText(phone);
@@ -105,6 +245,19 @@ public class ProfileActivity extends AppCompatActivity {
         }
     }
 
+    private void loadRatingData() {
+        try {
+            SharedPreferences prefs = getSharedPreferences("PSRU_USER_PREF", MODE_PRIVATE);
+            float averageRating = prefs.getFloat("USER_AVG_RATING", 4.9f);
+
+            if (tvReviewCount != null) {
+                tvReviewCount.setText(String.format(Locale.getDefault(), "%.1f", averageRating));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private void loadAndDisplayMyPostsGrid() {
         try {
             if (layoutMyPostsGridContainer == null) return;
@@ -112,7 +265,6 @@ public class ProfileActivity extends AppCompatActivity {
 
             List<PostItem> allPosts = new ArrayList<>();
 
-            // 1. ดึงประกาศตลาดทั่วไป
             try {
                 SharedPreferences prefsSwap = getSharedPreferences("PSRU_SWAP_PRODUCTS", MODE_PRIVATE);
                 String jsonSwap = prefsSwap.getString("product_list", "[]");
@@ -136,7 +288,6 @@ public class ProfileActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
 
-            // 2. ดึงประกาศบอร์ดตามหา
             try {
                 SharedPreferences prefsWanted = getSharedPreferences("PSRU_WANTED_PRODUCTS", MODE_PRIVATE);
                 String jsonWanted = prefsWanted.getString("product_list", "[]");

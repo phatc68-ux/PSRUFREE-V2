@@ -22,7 +22,7 @@ public class RegisterActivity extends AppCompatActivity {
 
     private static final int PICK_IMAGE_REQUEST = 1;
 
-    // เพิ่มตัวแปรสำหรับช่องทางการติดต่อ
+    // ตัวแปรสำหรับฟอร์มสมัครสมาชิกและช่องทางการติดต่อ
     private EditText etRegName, etRegStudentId, etRegEmail, etRegPassword;
     private EditText etRegFacebook, etRegInstagram, etRegPhone;
     private LinearLayout btnSelectProfileImage;
@@ -42,7 +42,7 @@ public class RegisterActivity extends AppCompatActivity {
         etRegEmail = findViewById(R.id.etRegEmail);
         etRegPassword = findViewById(R.id.etRegPassword);
 
-        // ฟิลด์ช่องทางการติดต่อ (ตรวจสอบให้แน่ใจว่าใน activity_register.xml มี id ตรงกัน)
+        // ฟิลด์ช่องทางการติดต่อ
         etRegFacebook = findViewById(R.id.etRegFacebook);
         etRegInstagram = findViewById(R.id.etRegInstagram);
         etRegPhone = findViewById(R.id.etRegPhone);
@@ -77,7 +77,7 @@ public class RegisterActivity extends AppCompatActivity {
                 return;
             }
 
-            // บันทึกข้อมูลลง SharedPreferences สำหรับนำไปแสดงผลที่หน้าโปรไฟล์
+            // บันทึกข้อมูลลง SharedPreferences
             SharedPreferences prefs = getSharedPreferences("PSRU_USER_PREF", MODE_PRIVATE);
             SharedPreferences.Editor editor = prefs.edit();
             editor.putString("USER_NAME", name);
@@ -95,7 +95,7 @@ public class RegisterActivity extends AppCompatActivity {
 
             Toast.makeText(RegisterActivity.this, "สมัครสมาชิกสำเร็จ!", Toast.LENGTH_SHORT).show();
 
-            // กลับไปหน้าก่อนหน้า (Login หรือ หน้าหลัก)
+            // กลับไปหน้า Login
             finish();
         });
 
@@ -114,12 +114,7 @@ public class RegisterActivity extends AppCompatActivity {
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
             Uri sourceUri = data.getData();
 
-            try {
-                final int takeFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                getContentResolver().takePersistableUriPermission(sourceUri, takeFlags);
-            } catch (Exception ignored) {}
-
-            // คัดลอกรูปภาพมาเก็บไว้ใน Cache ภายในแอป เพื่อให้หน้า ProfileActivity เปิดอ่านได้ตลอดเวลา
+            // เนื่องจากเราคัดลอกไฟล์ลง Cache ภายในทันที จึงไม่ต้องขอ TakePersistableUriPermission ให้เกิด Error
             File savedFile = saveUriToInternalCache(sourceUri);
             if (savedFile != null) {
                 profileImageUriStr = Uri.fromFile(savedFile).toString();

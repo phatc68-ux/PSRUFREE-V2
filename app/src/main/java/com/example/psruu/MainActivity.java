@@ -1,7 +1,9 @@
 package com.example.psruu;
 
-import android.widget.ImageView;
+import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -15,6 +17,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -99,25 +102,12 @@ public class MainActivity extends AppCompatActivity {
             btnOpenPost.setOnClickListener(v -> showPostItemDialog(isWantedTab ? 3 : 0));
         }
 
-        // ==========================================
-        // เชื่อมโยงปุ่มเมนูด้านล่าง
-        // ==========================================
-        LinearLayout navMarket = findViewById(R.id.navMarket);
-        LinearLayout navChat = findViewById(R.id.navChat);
-        LinearLayout navFavorite = findViewById(R.id.navFavorite);
-        LinearLayout navProfile = findViewById(R.id.navProfile);
+        View navMarket = findViewById(R.id.navMarket);
+        View navFavorite = findViewById(R.id.navFavorite);
+        View navProfile = findViewById(R.id.navProfile);
 
         if (navMarket != null) {
-            navMarket.setOnClickListener(v -> {
-                // อยู่หน้าหลักแล้ว
-            });
-        }
-
-        if (navChat != null) {
-            navChat.setOnClickListener(v -> {
-                Intent intent = new Intent(MainActivity.this, ChatActivity.class);
-                startActivity(intent);
-            });
+            navMarket.setOnClickListener(v -> {});
         }
 
         if (navFavorite != null) {
@@ -533,9 +523,78 @@ public class MainActivity extends AppCompatActivity {
         TextView tvDetailDescription = detailDialog.findViewById(R.id.tvDetailDescription);
         TextView tvDetailLocation = detailDialog.findViewById(R.id.tvDetailLocation);
         View btnCloseDetail = detailDialog.findViewById(R.id.btnClose);
-
-        // [แก้ไขแล้ว] เปลี่ยนชนิดข้อมูลเป็น TextView ให้ตรงกับ dialog_product_detail.xml
         TextView btnFavorite = detailDialog.findViewById(R.id.ivFavorite);
+
+        if (ivDetailProduct != null) {
+            ivDetailProduct.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            ivDetailProduct.setBackgroundColor(Color.WHITE);
+            int heightPx = (int) (220 * getResources().getDisplayMetrics().density);
+            ivDetailProduct.getLayoutParams().height = heightPx;
+            ivDetailProduct.requestLayout();
+        }
+
+        SharedPreferences userPrefs = getSharedPreferences("PSRU_USER_PREF", MODE_PRIVATE);
+        String sellerName = userPrefs.getString("USER_NAME", "ผู้ใช้งาน PSRU");
+        String sellerFb = userPrefs.getString("USER_FACEBOOK", "-");
+        String sellerIg = userPrefs.getString("USER_INSTAGRAM", "-");
+        String sellerPhone = userPrefs.getString("USER_PHONE", "-");
+        String sellerProfileUri = userPrefs.getString("USER_IMAGE", "");
+
+        TextView tvSellerName = detailDialog.findViewById(R.id.tvSellerName);
+        ImageView ivSellerProfile = detailDialog.findViewById(R.id.ivSellerProfile);
+        TextView tvContactFacebook = detailDialog.findViewById(R.id.tvContactFacebook);
+        TextView tvContactInstagram = detailDialog.findViewById(R.id.tvContactInstagram);
+        TextView tvContactPhone = detailDialog.findViewById(R.id.tvContactPhone);
+
+        if (tvSellerName != null) tvSellerName.setText(sellerName);
+
+        if (ivSellerProfile != null && sellerProfileUri != null && !sellerProfileUri.isEmpty()) {
+            try {
+                ivSellerProfile.setImageURI(Uri.parse(sellerProfileUri));
+                ivSellerProfile.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (tvContactFacebook != null) tvContactFacebook.setText("Facebook: " + (sellerFb.isEmpty() ? "-" : sellerFb));
+        if (tvContactInstagram != null) tvContactInstagram.setText("Instagram: " + (sellerIg.isEmpty() ? "-" : sellerIg));
+        if (tvContactPhone != null) tvContactPhone.setText("โทร: " + (sellerPhone.isEmpty() ? "-" : sellerPhone));
+
+        Button btnCopyFb = detailDialog.findViewById(R.id.btnCopyFb);
+        if (btnCopyFb != null) {
+            btnCopyFb.setOnClickListener(v -> {
+                ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText("Facebook", sellerFb);
+                clipboard.setPrimaryClip(clip);
+                Toast.makeText(this, "คัดลอก Facebook แล้ว", Toast.LENGTH_SHORT).show();
+            });
+        }
+
+        Button btnCopyIg = detailDialog.findViewById(R.id.btnCopyIg);
+        if (btnCopyIg != null) {
+            btnCopyIg.setOnClickListener(v -> {
+                ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText("Instagram", sellerIg);
+                clipboard.setPrimaryClip(clip);
+                Toast.makeText(this, "คัดลอก Instagram แล้ว", Toast.LENGTH_SHORT).show();
+            });
+        }
+
+        Button btnCopyPhone = detailDialog.findViewById(R.id.btnCopyPhone);
+        if (btnCopyPhone != null) {
+            btnCopyPhone.setOnClickListener(v -> {
+                ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText("Phone", sellerPhone);
+                clipboard.setPrimaryClip(clip);
+                Toast.makeText(this, "คัดลอกเบอร์โทรศัพท์แล้ว", Toast.LENGTH_SHORT).show();
+            });
+        }
+
+        View btnRateSeller = detailDialog.findViewById(getResources().getIdentifier("btnRateSeller", "id", getPackageName()));
+        if (btnRateSeller != null) {
+            btnRateSeller.setOnClickListener(v -> showRatingDialog(sellerName));
+        }
 
         if (tvDetailName != null) tvDetailName.setText(name);
         if (tvDetailPrice != null) tvDetailPrice.setText(price);
@@ -551,7 +610,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        // ระบบกดบันทึกรายการโปรด
         if (btnFavorite != null) {
             btnFavorite.setOnClickListener(v -> {
                 SharedPreferences prefs = getSharedPreferences("PSRU_FAVORITE_PREF", MODE_PRIVATE);
@@ -581,6 +639,149 @@ public class MainActivity extends AppCompatActivity {
         }
 
         detailDialog.show();
+    }
+
+    private void showRatingDialog(String sellerName) {
+        Dialog ratingDialog = new Dialog(MainActivity.this);
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(32, 32, 32, 32);
+        layout.setBackgroundColor(Color.WHITE);
+
+        TextView tvTitle = new TextView(this);
+        tvTitle.setText("ให้คะแนนรีวิวผู้ขาย");
+        tvTitle.setTextSize(18);
+        tvTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+        tvTitle.setGravity(android.view.Gravity.CENTER);
+        tvTitle.setTextColor(Color.parseColor("#333333"));
+        layout.addView(tvTitle);
+
+        TextView tvSubtitle = new TextView(this);
+        tvSubtitle.setText("ให้คะแนน " + sellerName);
+        tvSubtitle.setTextSize(13);
+        tvSubtitle.setGravity(android.view.Gravity.CENTER);
+        tvSubtitle.setTextColor(Color.parseColor("#6C757D"));
+        tvSubtitle.setPadding(0, 4, 0, 16);
+        layout.addView(tvSubtitle);
+
+        LinearLayout starLayout = new LinearLayout(this);
+        starLayout.setOrientation(LinearLayout.HORIZONTAL);
+        starLayout.setGravity(android.view.Gravity.CENTER);
+        starLayout.setPadding(0, 8, 0, 24);
+
+        final int[] currentRating = {5};
+        TextView[] stars = new TextView[5];
+        for (int i = 0; i < 5; i++) {
+            final int index = i;
+            stars[i] = new TextView(this);
+            stars[i].setText("★");
+            stars[i].setTextSize(36);
+            stars[i].setTextColor(Color.parseColor("#FFC107"));
+            stars[i].setPadding(6, 0, 6, 0);
+            stars[i].setOnClickListener(v -> {
+                currentRating[0] = index + 1;
+                for (int j = 0; j < 5; j++) {
+                    if (j <= index) {
+                        stars[j].setTextColor(Color.parseColor("#FFC107"));
+                    } else {
+                        stars[j].setTextColor(Color.parseColor("#CED4DA"));
+                    }
+                }
+            });
+            starLayout.addView(stars[i]);
+        }
+        layout.addView(starLayout);
+
+        EditText etComment = new EditText(this);
+        etComment.setHint("ส่งของไว สภาพตรงปก พูดจาดีมากครับ...");
+        etComment.setTextSize(14);
+        etComment.setMinLines(3);
+        etComment.setPadding(20, 20, 20, 20);
+        etComment.setBackgroundResource(android.R.drawable.edit_text);
+        LinearLayout.LayoutParams commentParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        commentParams.setMargins(0, 0, 0, 24);
+        etComment.setLayoutParams(commentParams);
+        layout.addView(etComment);
+
+        LinearLayout btnLayout = new LinearLayout(this);
+        btnLayout.setOrientation(LinearLayout.HORIZONTAL);
+        btnLayout.setGravity(android.view.Gravity.END);
+
+        Button btnCancel = new Button(this);
+        btnCancel.setText("ยกเลิก");
+        btnCancel.setBackgroundColor(Color.parseColor("#E9ECEF"));
+        btnCancel.setTextColor(Color.parseColor("#495057"));
+        btnCancel.setOnClickListener(v -> ratingDialog.dismiss());
+
+        Button btnSubmit = new Button(this);
+        btnSubmit.setText("ส่งรีวิว");
+        btnSubmit.setBackgroundColor(Color.parseColor("#FFA500"));
+        btnSubmit.setTextColor(Color.WHITE);
+        LinearLayout.LayoutParams submitParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        submitParams.setMargins(16, 0, 0, 0);
+        btnSubmit.setLayoutParams(submitParams);
+
+        // ส่วนที่อัปเดต: บันทึกรีวิวทั้งคะแนนดาวและข้อความลง SharedPreferences
+        btnSubmit.setOnClickListener(v -> {
+            try {
+                float score = (float) currentRating[0];
+                String commentText = etComment.getText().toString().trim();
+                if (commentText.isEmpty()) {
+                    commentText = "ยอดเยี่ยมมากครับ ส่งของไว สภาพตรงปก";
+                }
+
+                // ดึงชื่อผู้รีวิวปัจจุบัน
+                SharedPreferences userPrefs = getSharedPreferences("PSRU_USER_PREF", MODE_PRIVATE);
+                String reviewerName = userPrefs.getString("USER_NAME", "ผู้ใช้งานทั่วไป");
+                String currentDate = "18 มิ.ย. 2569";
+
+                // บันทึกลง SharedPreferences ของประวัติรีวิว
+                SharedPreferences reviewPrefs = getSharedPreferences("PSRU_REVIEW_PREF", MODE_PRIVATE);
+                String existingJson = reviewPrefs.getString("review_list", "[]");
+
+                JSONArray jsonArray = new JSONArray(existingJson);
+                JSONObject newReview = new JSONObject();
+                newReview.put("reviewer", reviewerName);
+                newReview.put("rating", String.valueOf(score));
+                newReview.put("comment", commentText);
+                newReview.put("date", currentDate);
+
+                // นำรีวิวใหม่แทรกไว้ตำแหน่งแรกสุด
+                JSONArray updatedArray = new JSONArray();
+                updatedArray.put(newReview);
+                for (int j = 0; j < jsonArray.length(); j++) {
+                    updatedArray.put(jsonArray.getJSONObject(j));
+                }
+
+                reviewPrefs.edit().putString("review_list", updatedArray.toString()).apply();
+
+                // อัปเดตคะแนนเฉลี่ยรวมของผู้ขาย
+                ProfileActivity.submitNewRating(MainActivity.this, score);
+
+                Toast.makeText(this, "ส่งรีวิวสำเร็จ (" + currentRating[0] + " ดาว) 🎉", Toast.LENGTH_SHORT).show();
+                ratingDialog.dismiss();
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(this, "เกิดข้อผิดพลาดในการบันทึกรีวิว", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        btnLayout.addView(btnCancel);
+        btnLayout.addView(btnSubmit);
+        layout.addView(btnLayout);
+
+        ratingDialog.setContentView(layout);
+        if (ratingDialog.getWindow() != null) {
+            ratingDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            int width = (int) (getResources().getDisplayMetrics().widthPixels * 0.9);
+            ratingDialog.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+        ratingDialog.show();
     }
 
     private void saveProductToPrefs(String name, String price, String category, String imageUri, String detail, String location, boolean wanted, int postType) {
@@ -630,9 +831,9 @@ public class MainActivity extends AppCompatActivity {
                 if (selectedCategoryIndex == 3 && !category.contains("ไอที")) continue;
 
                 if (!isWantedTab && selectedPostTypeFilter > 0) {
-                    if (selectedPostTypeFilter == 1 && postType != 0) continue; // ขาย
-                    if (selectedPostTypeFilter == 2 && postType != 1) continue; // แลก
-                    if (selectedPostTypeFilter == 3 && postType != 2) continue; // ให้ฟรี
+                    if (selectedPostTypeFilter == 1 && postType != 0) continue;
+                    if (selectedPostTypeFilter == 2 && postType != 1) continue;
+                    if (selectedPostTypeFilter == 3 && postType != 2) continue;
                 }
 
                 String imageUriStr = "";

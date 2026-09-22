@@ -330,7 +330,7 @@
                     android:textSize="10.5sp" />
             </LinearLayout>
 
-            <!-- หัวข้อรายการสินค้า (เพิ่ม id tvSectionTitle แล้ว) -->
+            <!-- หัวข้อรายการสินค้า -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -359,7 +359,7 @@
                     android:textSize="11sp" />
             </LinearLayout>
 
-            <!-- กล่องคอนเทนเนอร์สำหรับแสดงรายการสินค้า (รองรับสินค้าไดนามิกที่เพิ่มเข้ามา) -->
+            <!-- กล่องคอนเทนเนอร์สำหรับแสดงรายการสินค้า -->
             <LinearLayout
                 android:id="@+id/containerProducts"
                 android:layout_width="match_parent"
@@ -369,7 +369,7 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- เมนูด้านล่างสุด (Bottom Navigation) -->
+    <!-- เมนูด้านล่างสุด (Bottom Navigation) แบบ 3 ปุ่มที่จัดสัดส่วนเท่ากัน -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="56dp"
@@ -377,6 +377,7 @@
         android:elevation="8dp"
         android:orientation="horizontal">
 
+        <!-- ปุ่มตลาดนัด -->
         <LinearLayout
             android:id="@+id/navMarket"
             android:layout_width="0dp"
@@ -385,7 +386,8 @@
             android:clickable="true"
             android:focusable="true"
             android:gravity="center"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:background="?attr/selectableItemBackground">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -402,30 +404,7 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/navChat"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="💬"
-                android:textSize="14sp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="แชท"
-                android:textColor="#6C757D"
-                android:textSize="10sp" />
-        </LinearLayout>
-
+        <!-- ปุ่มรายการโปรด -->
         <LinearLayout
             android:id="@+id/navFavorite"
             android:layout_width="0dp"
@@ -434,7 +413,8 @@
             android:clickable="true"
             android:focusable="true"
             android:gravity="center"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:background="?attr/selectableItemBackground">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -450,6 +430,7 @@
                 android:textSize="10sp" />
         </LinearLayout>
 
+        <!-- ปุ่มโปรไฟล์ -->
         <LinearLayout
             android:id="@+id/navProfile"
             android:layout_width="0dp"
@@ -458,7 +439,8 @@
             android:clickable="true"
             android:focusable="true"
             android:gravity="center"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:background="?attr/selectableItemBackground">
 
             <TextView
                 android:layout_width="wrap_content"

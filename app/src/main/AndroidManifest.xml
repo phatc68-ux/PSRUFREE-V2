@@ -24,8 +24,6 @@
         <activity android:name=".RegisterActivity" android:exported="false" />
         <activity android:name=".MainActivity" android:exported="false" />
         <activity android:name=".WantBoardActivity" android:exported="false" />
-        <activity android:name=".ChatActivity" android:exported="false" />
-        <activity android:name=".ChatRoomActivity" android:exported="false" />
         <activity android:name=".FavoriteActivity" android:exported="false" />
         <activity android:name=".ProfileActivity" android:exported="false" />
 

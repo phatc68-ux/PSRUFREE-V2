@@ -8,11 +8,20 @@
     <!-- ส่วนหัวแอปพลิเคชัน (Top Bar) -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="wrap_content"
         android:background="#00794C"
         android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="16dp">
+        android:paddingHorizontal="16dp"
+        android:paddingTop="36dp"
+        android:paddingBottom="12dp">
+
+        <ImageView
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_marginRight="10dp"
+            android:background="#FFFFFF"
+            android:padding="6dp"
+            android:src="@drawable/ic_launcher_foreground" />
 
         <LinearLayout
             android:layout_width="0dp"
@@ -25,33 +34,41 @@
                 android:layout_height="wrap_content"
                 android:text="PSRU Swap"
                 android:textColor="#FFFFFF"
-                android:textSize="18sp"
+                android:textSize="17sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="ตลาดนัดส่งต่อของ ม.ราชภัฏพิบูลสงคราม"
-                android:textColor="#E0F2F1"
-                android:textSize="10sp" />
+                android:textColor="#D1E7DD"
+                android:textSize="10.5sp" />
         </LinearLayout>
 
-        <Button
+        <TextView
             android:id="@+id/btnAddPost"
             android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:layout_marginEnd="12dp"
-            android:backgroundTint="#00A86B"
+            android:layout_height="34dp"
+            android:layout_marginRight="10dp"
+            android:background="#00A86B"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:paddingHorizontal="12dp"
             android:text="+ ลงประกาศ"
             android:textColor="#FFFFFF"
-            android:textSize="12sp" />
+            android:textSize="12sp"
+            android:textStyle="bold" />
 
         <ImageView
             android:id="@+id/ivToolbarProfile"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:background="@drawable/ic_launcher_foreground"
-            android:scaleType="centerCrop" />
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:background="#E9ECEF"
+            android:clickable="true"
+            android:focusable="true"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_launcher_foreground" />
     </LinearLayout>
 
     <!-- เนื้อหาเลื่อนได้ -->
@@ -60,6 +77,7 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:fillViewport="true"
+        android:scrollbars="none"
         android:padding="16dp">
 
         <LinearLayout
@@ -71,7 +89,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_dialog_rounded"
+                android:background="#FFFFFF"
                 android:orientation="vertical"
                 android:padding="16dp"
                 android:elevation="2dp"
@@ -84,7 +102,6 @@
                     android:orientation="horizontal"
                     android:layout_marginBottom="16dp">
 
-                    <!-- [มี id สำหรับรูปโปรไฟล์] -->
                     <ImageView
                         android:id="@+id/ivProfileImage"
                         android:layout_width="64dp"
@@ -137,7 +154,6 @@
                     android:orientation="horizontal"
                     android:padding="10dp">
 
-                    <!-- Facebook -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -167,7 +183,6 @@
                         android:layout_height="24dp"
                         android:background="#DDDDDD" />
 
-                    <!-- Instagram -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -197,7 +212,6 @@
                         android:layout_height="24dp"
                         android:background="#DDDDDD" />
 
-                    <!-- เบอร์โทร -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -231,11 +245,12 @@
                 android:orientation="horizontal"
                 android:layout_marginBottom="16dp">
 
+                <!-- ประกาศของฉัน -->
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:background="@drawable/bg_dialog_rounded"
+                    android:background="#FFFFFF"
                     android:gravity="center"
                     android:orientation="vertical"
                     android:padding="12dp"
@@ -257,11 +272,12 @@
                         android:textSize="11sp" />
                 </LinearLayout>
 
+                <!-- คะแนนรีวิว -->
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:background="@drawable/bg_dialog_rounded"
+                    android:background="#FFFFFF"
                     android:gravity="center"
                     android:orientation="vertical"
                     android:padding="12dp"
@@ -283,18 +299,22 @@
                         android:textSize="11sp" />
                 </LinearLayout>
 
+                <!-- ประวัติรีวิว (แก้ไข ID ให้ตรงกับ ProfileActivity.java แล้ว) -->
                 <LinearLayout
+                    android:id="@+id/btnReviewHistory"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:background="@drawable/bg_dialog_rounded"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:gravity="center"
                     android:orientation="vertical"
                     android:padding="12dp"
                     android:layout_marginStart="6dp"
                     android:elevation="1dp">
                     <TextView
-                        android:id="@+id/tvSuccessCount"
+                        android:id="@+id/tvReviewHistoryCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="12"
@@ -304,7 +324,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="ส่งต่อสำเร็จ"
+                        android:text="ประวัติรีวิว"
                         android:textColor="#666666"
                         android:textSize="11sp" />
                 </LinearLayout>
@@ -320,7 +340,7 @@
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp" />
 
-            <!-- พื้นที่แสดงรายการสินค้าแบบไดนามิก (Java จะนำการ์ดมาใส่ในนี้) -->
+            <!-- พื้นที่แสดงรายการสินค้าแบบไดนามิก -->
             <LinearLayout
                 android:id="@+id/layoutMyPostsGridContainer"
                 android:layout_width="match_parent"
@@ -342,7 +362,7 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- เมนูด้านล่าง -->
+    <!-- เมนูด้านล่าง (Bottom Navigation) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="56dp"
@@ -355,12 +375,16 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
             android:gravity="center"
             android:orientation="vertical">
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@android:drawable/ic_menu_agenda" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🏠"
+                android:textSize="14sp" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -374,12 +398,16 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
             android:gravity="center"
             android:orientation="vertical">
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@android:drawable/ic_menu_myplaces" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="❤️"
+                android:textSize="14sp" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -393,13 +421,16 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
             android:gravity="center"
             android:orientation="vertical">
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@android:drawable/ic_menu_manage"
-                android:tint="#00794C" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="👤"
+                android:textSize="14sp" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -409,4 +440,5 @@
                 android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
+
 </LinearLayout>

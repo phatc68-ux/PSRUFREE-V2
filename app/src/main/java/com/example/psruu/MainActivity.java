@@ -1,24 +1,23 @@
 package com.example.psruu;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Base64;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RatingBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,32 +25,19 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final int PICK_IMAGE_REQUEST = 1;
+
     private TextView btnOpenPost;
     private LinearLayout containerProducts;
-
-    private TextView tabMarketplace, tabWantedBoard;
-    private TextView tvSectionTitle;
-    private boolean isWantedTab = false;
-
+    private TextView tabMarketplace, tabWantedBoard, tvSectionTitle;
     private TextView catAll, catBook, catEquipment, catIt;
-    private int selectedCategoryIndex = 0;
-
     private TextView typeAll, typeSell, typeSwap, typeFree;
-    private int selectedPostTypeFilter = 0;
-
-    private static final String PREF_NAME = "PSRU_SWAP_PRODUCTS";
-    private static final String PREF_WANTED_NAME = "PSRU_WANTED_PRODUCTS";
-    private static final int PICK_IMAGE_REQUEST = 1;
 
     private ImageView ivPreviewImage;
     private LinearLayout layoutPlaceholderImage;
@@ -59,16 +45,37 @@ public class MainActivity extends AppCompatActivity {
     private Dialog currentDialog;
     private LinearLayout currentRowLayout = null;
 
+    private boolean isWantedTab = false;
+    private int selectedCategoryIndex = 0;
+    private int selectedPostTypeFilter = 0;
     private int selectedPostTypeIndex = 0;
+
+    private ProductRepository productRepository;
+    private UserRepository userRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        productRepository = new ProductRepository(this);
+        userRepository = new UserRepository(this);
+
+        initViews();
+        initListeners();
+        loadSavedProducts();
+        updatePostTypeFilterUI();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadSavedProducts();
+    }
+
+    private void initViews() {
         btnOpenPost = findViewById(R.id.btnOpenPost);
         containerProducts = findViewById(R.id.containerProducts);
-
         tabMarketplace = findViewById(R.id.tabMarketplace);
         tabWantedBoard = findViewById(R.id.tabWantedBoard);
         tvSectionTitle = findViewById(R.id.tvSectionTitle);
@@ -82,7 +89,9 @@ public class MainActivity extends AppCompatActivity {
         typeSell = findViewById(R.id.typeSell);
         typeSwap = findViewById(R.id.typeSwap);
         typeFree = findViewById(R.id.typeFree);
+    }
 
+    private void initListeners() {
         if (tabMarketplace != null && tabWantedBoard != null) {
             tabMarketplace.setOnClickListener(v -> switchTab(false));
             tabWantedBoard.setOnClickListener(v -> switchTab(true));
@@ -102,35 +111,22 @@ public class MainActivity extends AppCompatActivity {
             btnOpenPost.setOnClickListener(v -> showPostItemDialog(isWantedTab ? 3 : 0));
         }
 
-        View navMarket = findViewById(R.id.navMarket);
         View navFavorite = findViewById(R.id.navFavorite);
         View navProfile = findViewById(R.id.navProfile);
 
-        if (navMarket != null) {
-            navMarket.setOnClickListener(v -> {});
-        }
-
         if (navFavorite != null) {
-            navFavorite.setOnClickListener(v -> {
-                Intent intent = new Intent(MainActivity.this, FavoriteActivity.class);
-                startActivity(intent);
-            });
+            navFavorite.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, FavoriteActivity.class)));
         }
 
         if (navProfile != null) {
-            navProfile.setOnClickListener(v -> {
-                Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
-                startActivity(intent);
-            });
+            navProfile.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, ProfileActivity.class)));
         }
-
-        loadSavedProducts();
     }
 
     private void switchTab(boolean wanted) {
         isWantedTab = wanted;
-
         int filterVisibility = wanted ? View.GONE : View.VISIBLE;
+
         if (typeAll != null) typeAll.setVisibility(filterVisibility);
         if (typeSell != null) typeSell.setVisibility(filterVisibility);
         if (typeSwap != null) typeSwap.setVisibility(filterVisibility);
@@ -140,30 +136,22 @@ public class MainActivity extends AppCompatActivity {
             if (tabMarketplace != null) {
                 tabMarketplace.setBackgroundColor(Color.TRANSPARENT);
                 tabMarketplace.setTextColor(Color.parseColor("#6C757D"));
-                tabMarketplace.setElevation(0f);
             }
             if (tabWantedBoard != null) {
                 tabWantedBoard.setBackgroundColor(Color.WHITE);
                 tabWantedBoard.setTextColor(Color.parseColor("#00794C"));
-                tabWantedBoard.setElevation(1f);
             }
-            if (tvSectionTitle != null) {
-                tvSectionTitle.setText("รายการประกาศตามหาของ");
-            }
+            if (tvSectionTitle != null) tvSectionTitle.setText("รายการประกาศตามหาของ");
         } else {
             if (tabMarketplace != null) {
                 tabMarketplace.setBackgroundColor(Color.WHITE);
                 tabMarketplace.setTextColor(Color.parseColor("#00794C"));
-                tabMarketplace.setElevation(1f);
             }
             if (tabWantedBoard != null) {
                 tabWantedBoard.setBackgroundColor(Color.TRANSPARENT);
                 tabWantedBoard.setTextColor(Color.parseColor("#6C757D"));
-                tabWantedBoard.setElevation(0f);
             }
-            if (tvSectionTitle != null) {
-                tvSectionTitle.setText("รายการสินค้า (ขาย / แลก / ให้ฟรี)");
-            }
+            if (tvSectionTitle != null) tvSectionTitle.setText("รายการสินค้า (ขาย / แลก / ให้ฟรี)");
         }
 
         loadSavedProducts();
@@ -178,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
     private void filterPostType(int typeIndex) {
         selectedPostTypeFilter = typeIndex;
         updatePostTypeFilterUI();
-        loadSavedProducts();
+        loadSavedProducts(); // โหลดข้อมูลใหม่ทันทีที่เปลี่ยนตัวกรองประเภท
     }
 
     private void updateCategoryButtonUI() {
@@ -255,10 +243,7 @@ public class MainActivity extends AppCompatActivity {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, categories);
         spinnerCategory.setAdapter(adapter);
 
-        if (btnClose != null) {
-            btnClose.setOnClickListener(v -> currentDialog.dismiss());
-        }
-
+        if (btnClose != null) btnClose.setOnClickListener(v -> currentDialog.dismiss());
         if (btnSelectImage != null) {
             btnSelectImage.setOnClickListener(v -> {
                 Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
@@ -279,21 +264,25 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
-                if (price.isEmpty()) {
-                    price = "0";
-                }
-
-                if (detail.isEmpty()) {
-                    detail = "ไม่มีรายละเอียดเพิ่มเติม";
-                }
-
-                if (location.isEmpty()) {
-                    location = "ม.ราชภัฏพิบูลสงคราม";
-                }
+                if (price.isEmpty()) price = "0";
+                if (detail.isEmpty()) detail = "ไม่มีรายละเอียดเพิ่มเติม";
+                if (location.isEmpty()) location = "ม.ราชภัฏพิบูลสงคราม";
 
                 boolean isWanted = (selectedPostTypeIndex == 3);
 
-                saveProductToPrefs(name, "฿" + price, category, selectedImageUriStr, detail, location, isWanted, selectedPostTypeIndex);
+                UserProfile profile = userRepository.getUserProfile();
+                String sellerName = profile != null ? profile.getName() : "ชื่อผู้ขาย";
+                String sellerFacebook = profile != null ? profile.getFacebook() : "-";
+                String sellerInstagram = profile != null ? profile.getInstagram() : "-";
+                String sellerPhone = profile != null ? profile.getPhone() : "-";
+                String sellerProfileImage = profile != null ? profile.getImageUri() : "";
+
+                Product newProduct = new Product(
+                        name, "฿" + price, category, selectedImageUriStr, detail, location, selectedPostTypeIndex,
+                        sellerName, sellerFacebook, sellerInstagram, sellerPhone, sellerProfileImage
+                );
+
+                productRepository.saveProduct(newProduct, isWanted);
                 loadSavedProducts();
 
                 Toast.makeText(MainActivity.this, "โพสต์ประกาศสำเร็จ! 🎉", Toast.LENGTH_SHORT).show();
@@ -306,16 +295,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void updatePostTypeUI(LinearLayout s, LinearLayout sw, LinearLayout f, LinearLayout w) {
         if (s == null || sw == null || f == null || w == null) return;
-
-        s.setBackgroundResource(R.drawable.bg_unselected_type);
-        sw.setBackgroundResource(R.drawable.bg_unselected_type);
-        f.setBackgroundResource(R.drawable.bg_unselected_type);
-        w.setBackgroundResource(R.drawable.bg_unselected_type);
-
-        if (selectedPostTypeIndex == 0) s.setBackgroundColor(Color.parseColor("#D1E7DD"));
-        else if (selectedPostTypeIndex == 1) sw.setBackgroundColor(Color.parseColor("#E2E3E5"));
-        else if (selectedPostTypeIndex == 2) f.setBackgroundColor(Color.parseColor("#F8D7DA"));
-        else if (selectedPostTypeIndex == 3) w.setBackgroundColor(Color.parseColor("#E8DAEF"));
+        s.setBackgroundColor(Color.parseColor(selectedPostTypeIndex == 0 ? "#D1E7DD" : "#FFFFFF"));
+        sw.setBackgroundColor(Color.parseColor(selectedPostTypeIndex == 1 ? "#E2E3E5" : "#FFFFFF"));
+        f.setBackgroundColor(Color.parseColor(selectedPostTypeIndex == 2 ? "#F8D7DA" : "#FFFFFF"));
+        w.setBackgroundColor(Color.parseColor(selectedPostTypeIndex == 3 ? "#E8DAEF" : "#FFFFFF"));
     }
 
     @Override
@@ -323,51 +306,74 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
             Uri sourceUri = data.getData();
+            selectedImageUriStr = convertUriToBase64(sourceUri);
 
-            try {
-                final int takeFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                getContentResolver().takePersistableUriPermission(sourceUri, takeFlags);
-            } catch (Exception ignored) {}
-
-            File savedFile = saveUriToInternalCache(sourceUri);
-            if (savedFile != null) {
-                selectedImageUriStr = Uri.fromFile(savedFile).toString();
-                if (ivPreviewImage != null && layoutPlaceholderImage != null) {
-                    ivPreviewImage.setImageURI(Uri.parse(selectedImageUriStr));
+            if (!selectedImageUriStr.isEmpty() && ivPreviewImage != null && layoutPlaceholderImage != null) {
+                try {
+                    byte[] decodedString = Base64.decode(selectedImageUriStr, Base64.DEFAULT);
+                    Bitmap decodedBitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                    ivPreviewImage.setImageBitmap(decodedBitmap);
                     ivPreviewImage.setVisibility(View.VISIBLE);
                     layoutPlaceholderImage.setVisibility(View.GONE);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            } else {
-                Toast.makeText(this, "ไม่สามารถโหลดรูปภาพนี้ได้", Toast.LENGTH_SHORT).show();
             }
         }
     }
 
-    private File saveUriToInternalCache(Uri uri) {
+    private String convertUriToBase64(Uri uri) {
         try {
             InputStream inputStream = getContentResolver().openInputStream(uri);
-            if (inputStream == null) return null;
+            if (inputStream == null) return "";
 
-            File cacheDir = getCacheDir();
-            File destinationFile = new File(cacheDir, "img_" + System.currentTimeMillis() + ".jpg");
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inJustDecodeBounds = true;
+            BitmapFactory.decodeStream(inputStream, null, options);
+            inputStream.close();
 
-            FileOutputStream outputStream = new FileOutputStream(destinationFile);
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = inputStream.read(buffer)) > 0) {
-                outputStream.write(buffer, 0, length);
+            int targetSize = 400;
+            int width = options.outWidth;
+            int height = options.outHeight;
+            int inSampleSize = 1;
+
+            if (width > targetSize || height > targetSize) {
+                final int halfWidth = width / 2;
+                final int halfHeight = height / 2;
+                while ((halfWidth / inSampleSize) >= targetSize && (halfHeight / inSampleSize) >= targetSize) {
+                    inSampleSize *= 2;
+                }
             }
 
-            outputStream.close();
+            inputStream = getContentResolver().openInputStream(uri);
+            options.inJustDecodeBounds = false;
+            options.inSampleSize = inSampleSize;
+            Bitmap bitmap = BitmapFactory.decodeStream(inputStream, null, options);
             inputStream.close();
-            return destinationFile;
+
+            if (bitmap != null) {
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 60, outputStream);
+                byte[] byteArray = outputStream.toByteArray();
+                return Base64.encodeToString(byteArray, Base64.DEFAULT);
+            }
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
+        }
+        return "";
+    }
+
+    private void loadSavedProducts() {
+        if (containerProducts != null) containerProducts.removeAllViews();
+        currentRowLayout = null;
+
+        List<Product> productList = productRepository.getProducts(isWantedTab, selectedCategoryIndex, selectedPostTypeFilter);
+        for (Product product : productList) {
+            addProductCardUI(product);
         }
     }
 
-    private void addProductCardUI(String name, String price, String category, String imageUriStr, String detail, String location, boolean wanted, int postType) {
+    private void addProductCardUI(Product product) {
         if (currentRowLayout == null || currentRowLayout.getChildCount() >= 2) {
             currentRowLayout = new LinearLayout(this);
             currentRowLayout.setLayoutParams(new LinearLayout.LayoutParams(
@@ -375,138 +381,59 @@ public class MainActivity extends AppCompatActivity {
                     LinearLayout.LayoutParams.WRAP_CONTENT
             ));
             currentRowLayout.setOrientation(LinearLayout.HORIZONTAL);
-
-            LinearLayout.LayoutParams rowParams = (LinearLayout.LayoutParams) currentRowLayout.getLayoutParams();
-            rowParams.setMargins(0, 0, 0, 12);
-            currentRowLayout.setLayoutParams(rowParams);
-
+            ((LinearLayout.LayoutParams) currentRowLayout.getLayoutParams()).setMargins(0, 0, 0, 12);
             containerProducts.addView(currentRowLayout, 0);
         }
 
-        LinearLayout cardLayout = new LinearLayout(this);
-        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                1.0f
-        );
-
+        View cardView = getLayoutInflater().inflate(R.layout.item_product, currentRowLayout, false);
+        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
         int childIndex = currentRowLayout.getChildCount();
-        if (childIndex == 0) {
-            cardParams.setMargins(0, 0, 6, 0);
-        } else {
-            cardParams.setMargins(6, 0, 0, 0);
-        }
+        cardParams.setMargins(childIndex == 0 ? 0 : 6, 0, childIndex == 0 ? 6 : 0, 0);
+        cardView.setLayoutParams(cardParams);
 
-        cardLayout.setLayoutParams(cardParams);
-        cardLayout.setOrientation(LinearLayout.VERTICAL);
-        cardLayout.setBackgroundColor(Color.WHITE);
-        cardLayout.setPadding(8, 8, 8, 10);
-        cardLayout.setElevation(2f);
-        cardLayout.setClickable(true);
-        cardLayout.setFocusable(true);
+        ImageView ivProduct = cardView.findViewById(R.id.ivProduct);
+        TextView tvBadge = cardView.findViewById(R.id.tvBadge);
+        TextView tvCategory = cardView.findViewById(R.id.tvCategory);
+        TextView tvName = cardView.findViewById(R.id.tvName);
+        TextView tvPrice = cardView.findViewById(R.id.tvPrice);
 
-        cardLayout.setOnClickListener(v -> showProductDetailDialog(name, price, category, imageUriStr, detail, location));
-
-        FrameLayout imageContainer = new FrameLayout(this);
-        int imageHeightPx = (int) (175 * getResources().getDisplayMetrics().density);
-        LinearLayout.LayoutParams imgContainerParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, imageHeightPx
-        );
-        imgContainerParams.setMargins(0, 0, 0, 6);
-        imageContainer.setLayoutParams(imgContainerParams);
-        imageContainer.setBackgroundColor(Color.WHITE);
-
-        ImageView ivProduct = new ImageView(this);
-        ivProduct.setLayoutParams(new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT
-        ));
-        ivProduct.setScaleType(ImageView.ScaleType.FIT_CENTER);
-
-        if (imageUriStr != null && !imageUriStr.isEmpty()) {
+        if (product.getImageUri() != null && !product.getImageUri().isEmpty()) {
             try {
-                ivProduct.setImageURI(Uri.parse(imageUriStr));
+                byte[] decodedString = Base64.decode(product.getImageUri(), Base64.DEFAULT);
+                Bitmap bitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                if (bitmap != null) {
+                    ivProduct.setImageBitmap(bitmap);
+                }
             } catch (Exception e) {
-                ivProduct.setBackgroundColor(Color.parseColor("#CED4DA"));
+                e.printStackTrace();
             }
         }
 
-        TextView tvBadge = new TextView(this);
         String badgeText = "ขาย";
         int badgeColor = Color.parseColor("#00794C");
-
-        if (wanted) {
+        if (isWantedTab) {
             badgeText = "ตามหา";
             badgeColor = Color.parseColor("#6F42C1");
         } else {
-            switch (postType) {
-                case 0:
-                    badgeText = "ขาย";
-                    badgeColor = Color.parseColor("#00794C");
-                    break;
-                case 1:
-                    badgeText = "แลก";
-                    badgeColor = Color.parseColor("#495057");
-                    break;
-                case 2:
-                    badgeText = "ให้ฟรี";
-                    badgeColor = Color.parseColor("#842029");
-                    break;
-                case 3:
-                    badgeText = "ตามหา";
-                    badgeColor = Color.parseColor("#6F42C1");
-                    break;
-                default:
-                    badgeText = "ขาย";
-                    badgeColor = Color.parseColor("#00794C");
-                    break;
+            switch (product.getPostType()) {
+                case 0: badgeText = "ขาย"; badgeColor = Color.parseColor("#00794C"); break;
+                case 1: badgeText = "แลก"; badgeColor = Color.parseColor("#495057"); break;
+                case 2: badgeText = "ให้ฟรี"; badgeColor = Color.parseColor("#842029"); break;
+                case 3: badgeText = "ตามหา"; badgeColor = Color.parseColor("#6F42C1"); break;
             }
         }
-
         tvBadge.setText(badgeText);
-        tvBadge.setTextColor(Color.WHITE);
-        tvBadge.setTextSize(9);
-        tvBadge.setPadding(8, 3, 8, 3);
         tvBadge.setBackgroundColor(badgeColor);
 
-        FrameLayout.LayoutParams badgeParams = new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.WRAP_CONTENT,
-                FrameLayout.LayoutParams.WRAP_CONTENT
-        );
-        tvBadge.setLayoutParams(badgeParams);
+        tvCategory.setText(product.getCategory());
+        tvName.setText(product.getName());
+        tvPrice.setText(product.getPrice());
 
-        imageContainer.addView(ivProduct);
-        imageContainer.addView(tvBadge);
-
-        TextView tvCategory = new TextView(this);
-        tvCategory.setText(category);
-        tvCategory.setTextColor(Color.parseColor("#00794C"));
-        tvCategory.setTextSize(9);
-        tvCategory.setMaxLines(1);
-
-        TextView tvName = new TextView(this);
-        tvName.setText(name);
-        tvName.setTextColor(Color.parseColor("#333333"));
-        tvName.setTextSize(11);
-        tvName.setTypeface(null, android.graphics.Typeface.BOLD);
-        tvName.setMaxLines(2);
-
-        TextView tvPrice = new TextView(this);
-        tvPrice.setText(price);
-        tvPrice.setTextColor(Color.parseColor("#00794C"));
-        tvPrice.setTextSize(12);
-        tvPrice.setTypeface(null, android.graphics.Typeface.BOLD);
-        tvPrice.setPadding(0, 2, 0, 0);
-
-        cardLayout.addView(imageContainer);
-        cardLayout.addView(tvCategory);
-        cardLayout.addView(tvName);
-        cardLayout.addView(tvPrice);
-
-        currentRowLayout.addView(cardLayout);
+        cardView.setOnClickListener(v -> showProductDetailDialog(product));
+        currentRowLayout.addView(cardView);
     }
 
-    private void showProductDetailDialog(String name, String price, String category, String imageUriStr, String detail, String location) {
+    private void showProductDetailDialog(Product product) {
         Dialog detailDialog = new Dialog(MainActivity.this);
         detailDialog.setContentView(R.layout.dialog_product_detail);
 
@@ -517,6 +444,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         ImageView ivDetailProduct = detailDialog.findViewById(R.id.ivDetailProduct);
+        ImageView ivSellerProfile = detailDialog.findViewById(R.id.ivSellerProfile);
         TextView tvDetailCategory = detailDialog.findViewById(R.id.tvDetailCategory);
         TextView tvDetailName = detailDialog.findViewById(R.id.tvDetailName);
         TextView tvDetailPrice = detailDialog.findViewById(R.id.tvDetailPrice);
@@ -524,109 +452,82 @@ public class MainActivity extends AppCompatActivity {
         TextView tvDetailLocation = detailDialog.findViewById(R.id.tvDetailLocation);
         View btnCloseDetail = detailDialog.findViewById(R.id.btnClose);
         TextView btnFavorite = detailDialog.findViewById(R.id.ivFavorite);
+        TextView btnRateSeller = detailDialog.findViewById(R.id.btnRateSeller);
 
-        if (ivDetailProduct != null) {
-            ivDetailProduct.setScaleType(ImageView.ScaleType.FIT_CENTER);
-            ivDetailProduct.setBackgroundColor(Color.WHITE);
-            int heightPx = (int) (220 * getResources().getDisplayMetrics().density);
-            ivDetailProduct.getLayoutParams().height = heightPx;
-            ivDetailProduct.requestLayout();
-        }
+        TextView tvDetailSellerName = detailDialog.findViewById(R.id.tvSellerName);
+        TextView tvDetailFacebook = detailDialog.findViewById(R.id.tvContactFacebook);
+        TextView tvDetailInstagram = detailDialog.findViewById(R.id.tvContactInstagram);
+        TextView tvDetailPhone = detailDialog.findViewById(R.id.tvContactPhone);
 
-        SharedPreferences userPrefs = getSharedPreferences("PSRU_USER_PREF", MODE_PRIVATE);
-        String sellerName = userPrefs.getString("USER_NAME", "ผู้ใช้งาน PSRU");
-        String sellerFb = userPrefs.getString("USER_FACEBOOK", "-");
-        String sellerIg = userPrefs.getString("USER_INSTAGRAM", "-");
-        String sellerPhone = userPrefs.getString("USER_PHONE", "-");
-        String sellerProfileUri = userPrefs.getString("USER_IMAGE", "");
+        if (tvDetailName != null) tvDetailName.setText(product.getName());
+        if (tvDetailPrice != null) tvDetailPrice.setText(product.getPrice());
+        if (tvDetailCategory != null) tvDetailCategory.setText(product.getCategory() + " · PSRU SWAP");
+        if (tvDetailDescription != null) tvDetailDescription.setText(product.getDetail());
+        if (tvDetailLocation != null) tvDetailLocation.setText(product.getLocation());
 
-        TextView tvSellerName = detailDialog.findViewById(R.id.tvSellerName);
-        ImageView ivSellerProfile = detailDialog.findViewById(R.id.ivSellerProfile);
-        TextView tvContactFacebook = detailDialog.findViewById(R.id.tvContactFacebook);
-        TextView tvContactInstagram = detailDialog.findViewById(R.id.tvContactInstagram);
-        TextView tvContactPhone = detailDialog.findViewById(R.id.tvContactPhone);
+        if (tvDetailSellerName != null) tvDetailSellerName.setText(product.getSellerName());
+        if (tvDetailFacebook != null) tvDetailFacebook.setText("Facebook: " + product.getSellerFacebook());
+        if (tvDetailInstagram != null) tvDetailInstagram.setText("Instagram: " + product.getSellerInstagram());
+        if (tvDetailPhone != null) tvDetailPhone.setText("โทร: " + product.getSellerPhone());
 
-        if (tvSellerName != null) tvSellerName.setText(sellerName);
-
-        if (ivSellerProfile != null && sellerProfileUri != null && !sellerProfileUri.isEmpty()) {
+        if (ivDetailProduct != null && product.getImageUri() != null && !product.getImageUri().isEmpty()) {
             try {
-                ivSellerProfile.setImageURI(Uri.parse(sellerProfileUri));
-                ivSellerProfile.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                byte[] decodedString = Base64.decode(product.getImageUri(), Base64.DEFAULT);
+                Bitmap bitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                if (bitmap != null) {
+                    ivDetailProduct.setImageBitmap(bitmap);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
-        if (tvContactFacebook != null) tvContactFacebook.setText("Facebook: " + (sellerFb.isEmpty() ? "-" : sellerFb));
-        if (tvContactInstagram != null) tvContactInstagram.setText("Instagram: " + (sellerIg.isEmpty() ? "-" : sellerIg));
-        if (tvContactPhone != null) tvContactPhone.setText("โทร: " + (sellerPhone.isEmpty() ? "-" : sellerPhone));
-
-        Button btnCopyFb = detailDialog.findViewById(R.id.btnCopyFb);
-        if (btnCopyFb != null) {
-            btnCopyFb.setOnClickListener(v -> {
-                ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-                ClipData clip = ClipData.newPlainText("Facebook", sellerFb);
-                clipboard.setPrimaryClip(clip);
-                Toast.makeText(this, "คัดลอก Facebook แล้ว", Toast.LENGTH_SHORT).show();
-            });
-        }
-
-        Button btnCopyIg = detailDialog.findViewById(R.id.btnCopyIg);
-        if (btnCopyIg != null) {
-            btnCopyIg.setOnClickListener(v -> {
-                ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-                ClipData clip = ClipData.newPlainText("Instagram", sellerIg);
-                clipboard.setPrimaryClip(clip);
-                Toast.makeText(this, "คัดลอก Instagram แล้ว", Toast.LENGTH_SHORT).show();
-            });
-        }
-
-        Button btnCopyPhone = detailDialog.findViewById(R.id.btnCopyPhone);
-        if (btnCopyPhone != null) {
-            btnCopyPhone.setOnClickListener(v -> {
-                ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-                ClipData clip = ClipData.newPlainText("Phone", sellerPhone);
-                clipboard.setPrimaryClip(clip);
-                Toast.makeText(this, "คัดลอกเบอร์โทรศัพท์แล้ว", Toast.LENGTH_SHORT).show();
-            });
-        }
-
-        View btnRateSeller = detailDialog.findViewById(getResources().getIdentifier("btnRateSeller", "id", getPackageName()));
-        if (btnRateSeller != null) {
-            btnRateSeller.setOnClickListener(v -> showRatingDialog(sellerName));
-        }
-
-        if (tvDetailName != null) tvDetailName.setText(name);
-        if (tvDetailPrice != null) tvDetailPrice.setText(price);
-        if (tvDetailCategory != null) tvDetailCategory.setText(category + " · PSRU SWAP");
-        if (tvDetailDescription != null) tvDetailDescription.setText(detail);
-        if (tvDetailLocation != null) tvDetailLocation.setText(location);
-
-        if (ivDetailProduct != null && imageUriStr != null && !imageUriStr.isEmpty()) {
+        if (ivSellerProfile != null) {
             try {
-                ivDetailProduct.setImageURI(Uri.parse(imageUriStr));
+                UserProfile currentProfile = userRepository.getUserProfile();
+                String profileImg = "";
+
+                if (currentProfile != null && currentProfile.getImageUri() != null && !currentProfile.getImageUri().isEmpty()) {
+                    profileImg = currentProfile.getImageUri();
+                } else if (product.getSellerProfileImage() != null && !product.getSellerProfileImage().isEmpty()) {
+                    profileImg = product.getSellerProfileImage();
+                }
+
+                if (!profileImg.isEmpty()) {
+                    if (!profileImg.startsWith("file://") && !profileImg.startsWith("content://") && !profileImg.startsWith("http")) {
+                        byte[] decodedString = Base64.decode(profileImg, Base64.DEFAULT);
+                        Bitmap bitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                        if (bitmap != null) {
+                            ivSellerProfile.setImageBitmap(bitmap);
+                        }
+                    } else {
+                        ivSellerProfile.setImageURI(Uri.parse(profileImg));
+                    }
+                }
             } catch (Exception e) {
-                ivDetailProduct.setBackgroundColor(Color.parseColor("#CED4DA"));
+                e.printStackTrace();
             }
+        }
+
+        if (btnRateSeller != null) {
+            btnRateSeller.setOnClickListener(v -> showRatingDialog(product.getSellerName()));
         }
 
         if (btnFavorite != null) {
             btnFavorite.setOnClickListener(v -> {
-                SharedPreferences prefs = getSharedPreferences("PSRU_FAVORITE_PREF", MODE_PRIVATE);
-                String favJson = prefs.getString("favorite_list", "[]");
                 try {
-                    JSONArray jsonArray = new JSONArray(favJson);
-                    JSONObject newObj = new JSONObject();
-                    newObj.put("name", name);
-                    newObj.put("price", price);
-                    newObj.put("category", category);
-                    newObj.put("image", imageUriStr);
-                    newObj.put("detail", detail);
-                    newObj.put("location", location);
-
+                    android.content.SharedPreferences prefs = getSharedPreferences("PSRU_FAVORITE_PREF", MODE_PRIVATE);
+                    String favJson = prefs.getString("favorite_list", "[]");
+                    org.json.JSONArray jsonArray = new org.json.JSONArray(favJson);
+                    org.json.JSONObject newObj = new org.json.JSONObject();
+                    newObj.put("name", product.getName());
+                    newObj.put("price", product.getPrice());
+                    newObj.put("category", product.getCategory());
+                    newObj.put("image", product.getImageUri());
+                    newObj.put("detail", product.getDetail());
+                    newObj.put("location", product.getLocation());
                     jsonArray.put(newObj);
                     prefs.edit().putString("favorite_list", jsonArray.toString()).apply();
-
                     Toast.makeText(MainActivity.this, "บันทึกเข้ารายการโปรดแล้ว ❤️", Toast.LENGTH_SHORT).show();
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -634,243 +535,40 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-        if (btnCloseDetail != null) {
-            btnCloseDetail.setOnClickListener(v -> detailDialog.dismiss());
-        }
-
+        if (btnCloseDetail != null) btnCloseDetail.setOnClickListener(v -> detailDialog.dismiss());
         detailDialog.show();
     }
 
     private void showRatingDialog(String sellerName) {
         Dialog ratingDialog = new Dialog(MainActivity.this);
+        ratingDialog.setContentView(R.layout.dialog_rating);
 
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(32, 32, 32, 32);
-        layout.setBackgroundColor(Color.WHITE);
-
-        TextView tvTitle = new TextView(this);
-        tvTitle.setText("ให้คะแนนรีวิวผู้ขาย");
-        tvTitle.setTextSize(18);
-        tvTitle.setTypeface(null, android.graphics.Typeface.BOLD);
-        tvTitle.setGravity(android.view.Gravity.CENTER);
-        tvTitle.setTextColor(Color.parseColor("#333333"));
-        layout.addView(tvTitle);
-
-        TextView tvSubtitle = new TextView(this);
-        tvSubtitle.setText("ให้คะแนน " + sellerName);
-        tvSubtitle.setTextSize(13);
-        tvSubtitle.setGravity(android.view.Gravity.CENTER);
-        tvSubtitle.setTextColor(Color.parseColor("#6C757D"));
-        tvSubtitle.setPadding(0, 4, 0, 16);
-        layout.addView(tvSubtitle);
-
-        LinearLayout starLayout = new LinearLayout(this);
-        starLayout.setOrientation(LinearLayout.HORIZONTAL);
-        starLayout.setGravity(android.view.Gravity.CENTER);
-        starLayout.setPadding(0, 8, 0, 24);
-
-        final int[] currentRating = {5};
-        TextView[] stars = new TextView[5];
-        for (int i = 0; i < 5; i++) {
-            final int index = i;
-            stars[i] = new TextView(this);
-            stars[i].setText("★");
-            stars[i].setTextSize(36);
-            stars[i].setTextColor(Color.parseColor("#FFC107"));
-            stars[i].setPadding(6, 0, 6, 0);
-            stars[i].setOnClickListener(v -> {
-                currentRating[0] = index + 1;
-                for (int j = 0; j < 5; j++) {
-                    if (j <= index) {
-                        stars[j].setTextColor(Color.parseColor("#FFC107"));
-                    } else {
-                        stars[j].setTextColor(Color.parseColor("#CED4DA"));
-                    }
-                }
-            });
-            starLayout.addView(stars[i]);
-        }
-        layout.addView(starLayout);
-
-        EditText etComment = new EditText(this);
-        etComment.setHint("ส่งของไว สภาพตรงปก พูดจาดีมากครับ...");
-        etComment.setTextSize(14);
-        etComment.setMinLines(3);
-        etComment.setPadding(20, 20, 20, 20);
-        etComment.setBackgroundResource(android.R.drawable.edit_text);
-        LinearLayout.LayoutParams commentParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
-        );
-        commentParams.setMargins(0, 0, 0, 24);
-        etComment.setLayoutParams(commentParams);
-        layout.addView(etComment);
-
-        LinearLayout btnLayout = new LinearLayout(this);
-        btnLayout.setOrientation(LinearLayout.HORIZONTAL);
-        btnLayout.setGravity(android.view.Gravity.END);
-
-        Button btnCancel = new Button(this);
-        btnCancel.setText("ยกเลิก");
-        btnCancel.setBackgroundColor(Color.parseColor("#E9ECEF"));
-        btnCancel.setTextColor(Color.parseColor("#495057"));
-        btnCancel.setOnClickListener(v -> ratingDialog.dismiss());
-
-        Button btnSubmit = new Button(this);
-        btnSubmit.setText("ส่งรีวิว");
-        btnSubmit.setBackgroundColor(Color.parseColor("#FFA500"));
-        btnSubmit.setTextColor(Color.WHITE);
-        LinearLayout.LayoutParams submitParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT
-        );
-        submitParams.setMargins(16, 0, 0, 0);
-        btnSubmit.setLayoutParams(submitParams);
-
-        // ส่วนที่อัปเดต: บันทึกรีวิวทั้งคะแนนดาวและข้อความลง SharedPreferences
-        btnSubmit.setOnClickListener(v -> {
-            try {
-                float score = (float) currentRating[0];
-                String commentText = etComment.getText().toString().trim();
-                if (commentText.isEmpty()) {
-                    commentText = "ยอดเยี่ยมมากครับ ส่งของไว สภาพตรงปก";
-                }
-
-                // ดึงชื่อผู้รีวิวปัจจุบัน
-                SharedPreferences userPrefs = getSharedPreferences("PSRU_USER_PREF", MODE_PRIVATE);
-                String reviewerName = userPrefs.getString("USER_NAME", "ผู้ใช้งานทั่วไป");
-                String currentDate = "18 มิ.ย. 2569";
-
-                // บันทึกลง SharedPreferences ของประวัติรีวิว
-                SharedPreferences reviewPrefs = getSharedPreferences("PSRU_REVIEW_PREF", MODE_PRIVATE);
-                String existingJson = reviewPrefs.getString("review_list", "[]");
-
-                JSONArray jsonArray = new JSONArray(existingJson);
-                JSONObject newReview = new JSONObject();
-                newReview.put("reviewer", reviewerName);
-                newReview.put("rating", String.valueOf(score));
-                newReview.put("comment", commentText);
-                newReview.put("date", currentDate);
-
-                // นำรีวิวใหม่แทรกไว้ตำแหน่งแรกสุด
-                JSONArray updatedArray = new JSONArray();
-                updatedArray.put(newReview);
-                for (int j = 0; j < jsonArray.length(); j++) {
-                    updatedArray.put(jsonArray.getJSONObject(j));
-                }
-
-                reviewPrefs.edit().putString("review_list", updatedArray.toString()).apply();
-
-                // อัปเดตคะแนนเฉลี่ยรวมของผู้ขาย
-                ProfileActivity.submitNewRating(MainActivity.this, score);
-
-                Toast.makeText(this, "ส่งรีวิวสำเร็จ (" + currentRating[0] + " ดาว) 🎉", Toast.LENGTH_SHORT).show();
-                ratingDialog.dismiss();
-            } catch (Exception e) {
-                e.printStackTrace();
-                Toast.makeText(this, "เกิดข้อผิดพลาดในการบันทึกรีวิว", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        btnLayout.addView(btnCancel);
-        btnLayout.addView(btnSubmit);
-        layout.addView(btnLayout);
-
-        ratingDialog.setContentView(layout);
         if (ratingDialog.getWindow() != null) {
             ratingDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-            int width = (int) (getResources().getDisplayMetrics().widthPixels * 0.9);
+            int width = (int) (getResources().getDisplayMetrics().widthPixels * 0.85);
             ratingDialog.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
         }
+
+        RatingBar ratingBar = ratingDialog.findViewById(R.id.ratingBar);
+        EditText etReviewComment = ratingDialog.findViewById(R.id.etReviewComment);
+        Button btnSubmitRating = ratingDialog.findViewById(R.id.btnSubmitRating);
+
+        if (btnSubmitRating != null) {
+            btnSubmitRating.setOnClickListener(v -> {
+                float ratingScore = ratingBar != null ? ratingBar.getRating() : 5.0f;
+                String comment = etReviewComment != null ? etReviewComment.getText().toString().trim() : "";
+
+                ProfileRepository profileRepository = new ProfileRepository(MainActivity.this);
+                profileRepository.addReview("ผู้ใช้งานทั่วไป", ratingScore, comment, "วันนี้");
+
+                Toast.makeText(MainActivity.this,
+                        "ให้คะแนน " + sellerName + " " + (int)ratingScore + " ดาวสำเร็จ! ⭐",
+                        Toast.LENGTH_SHORT).show();
+
+                ratingDialog.dismiss();
+            });
+        }
+
         ratingDialog.show();
-    }
-
-    private void saveProductToPrefs(String name, String price, String category, String imageUri, String detail, String location, boolean wanted, int postType) {
-        String prefFileName = wanted ? PREF_WANTED_NAME : PREF_NAME;
-        SharedPreferences prefs = getSharedPreferences(prefFileName, MODE_PRIVATE);
-        String productsJson = prefs.getString("product_list", "[]");
-
-        try {
-            JSONArray jsonArray = new JSONArray(productsJson);
-            JSONObject newObj = new JSONObject();
-            newObj.put("name", name);
-            newObj.put("price", price);
-            newObj.put("category", category);
-            newObj.put("image", imageUri);
-            newObj.put("detail", detail);
-            newObj.put("location", location);
-            newObj.put("postType", postType);
-
-            jsonArray.put(newObj);
-            prefs.edit().putString("product_list", jsonArray.toString()).apply();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void loadSavedProducts() {
-        if (containerProducts != null) {
-            containerProducts.removeAllViews();
-        }
-        currentRowLayout = null;
-
-        String prefFileName = isWantedTab ? PREF_WANTED_NAME : PREF_NAME;
-        SharedPreferences prefs = getSharedPreferences(prefFileName, MODE_PRIVATE);
-        String productsJson = prefs.getString("product_list", "[]");
-
-        try {
-            JSONArray jsonArray = new JSONArray(productsJson);
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject obj = jsonArray.optJSONObject(i);
-                if (obj == null) continue;
-
-                String category = obj.optString("category", "");
-                int postType = obj.optInt("postType", 0);
-
-                if (selectedCategoryIndex == 1 && !category.contains("หนังสือเรียน")) continue;
-                if (selectedCategoryIndex == 2 && !category.contains("อุปกรณ์เรียน")) continue;
-                if (selectedCategoryIndex == 3 && !category.contains("ไอที")) continue;
-
-                if (!isWantedTab && selectedPostTypeFilter > 0) {
-                    if (selectedPostTypeFilter == 1 && postType != 0) continue;
-                    if (selectedPostTypeFilter == 2 && postType != 1) continue;
-                    if (selectedPostTypeFilter == 3 && postType != 2) continue;
-                }
-
-                String imageUriStr = "";
-                try {
-                    String rawUri = obj.optString("image", "");
-                    if (!rawUri.isEmpty()) {
-                        Uri parsedUri = Uri.parse(rawUri);
-                        if (parsedUri != null && parsedUri.getPath() != null) {
-                            File imgFile = new File(parsedUri.getPath());
-                            if (imgFile.exists()) {
-                                imageUriStr = rawUri;
-                            }
-                        }
-                    }
-                } catch (Exception ignored) {
-                    imageUriStr = "";
-                }
-
-                String name = obj.optString("name", "ไม่มีชื่อสินค้า");
-                String price = obj.optString("price", "฿0");
-                String detail = obj.optString("detail", "ไม่มีรายละเอียดเพิ่มเติม");
-                String location = obj.optString("location", "ม.ราชภัฏพิบูลสงคราม");
-
-                addProductCardUI(
-                        name,
-                        price,
-                        category,
-                        imageUriStr,
-                        detail,
-                        location,
-                        isWantedTab,
-                        postType
-                );
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            prefs.edit().putString("product_list", "[]").apply();
-        }
     }
 }

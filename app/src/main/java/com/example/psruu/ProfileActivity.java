@@ -4,11 +4,14 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Base64;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -19,12 +22,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.io.File;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -35,19 +34,16 @@ public class ProfileActivity extends AppCompatActivity {
     private TextView tvProfileFacebook, tvProfileInstagram, tvProfilePhone;
     private LinearLayout btnReviewHistory;
 
-    private static class PostItem {
-        String title;
-        String priceOrBudget;
-        String type;
-        String imageUri;
-        String sourceBoard;
-        int originalIndex;
-    }
+    private UserRepository userRepository;
+    private ProfileRepository profileRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
+
+        userRepository = new UserRepository(this);
+        profileRepository = new ProfileRepository(this);
 
         try {
             layoutMyPostsGridContainer = findViewById(R.id.layoutMyPostsGridContainer);
@@ -55,12 +51,10 @@ public class ProfileActivity extends AppCompatActivity {
             tvReviewCount = findViewById(R.id.tvReviewCount);
             tvReviewHistoryCount = findViewById(R.id.tvReviewHistoryCount);
 
-            // ผูกตัวแปรช่องทางการติดต่อ
             tvProfileFacebook = findViewById(R.id.tvProfileFacebook);
             tvProfileInstagram = findViewById(R.id.tvProfileInstagram);
             tvProfilePhone = findViewById(R.id.tvProfilePhone);
 
-            // ผูกปุ่มประวัติรีวิว
             btnReviewHistory = findViewById(R.id.btnReviewHistory);
             if (btnReviewHistory != null) {
                 btnReviewHistory.setOnClickListener(v -> showReviewHistoryDialog());
@@ -102,27 +96,14 @@ public class ProfileActivity extends AppCompatActivity {
         }
     }
 
-    // เมธอด Static ที่ MainActivity เรียกใช้เพื่อบันทึกคะแนนรีวิว
     public static void submitNewRating(Context context, float newRating) {
-        try {
-            SharedPreferences prefs = context.getSharedPreferences("PSRU_USER_PREF", MODE_PRIVATE);
-            prefs.edit().putFloat("USER_AVG_RATING", newRating).apply();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        UserRepository repo = new UserRepository(context);
+        repo.saveAverageRating(newRating);
     }
 
     private void loadReviewCount() {
         try {
-            SharedPreferences prefs = getSharedPreferences("PSRU_REVIEW_PREF", MODE_PRIVATE);
-            String reviewsJson = prefs.getString("review_list", "[]");
-            JSONArray jsonArray = new JSONArray(reviewsJson);
-
-            int totalReviews = jsonArray.length();
-            if (totalReviews == 0) {
-                totalReviews = 1;
-            }
-
+            int totalReviews = profileRepository.getReviewCount();
             if (tvReviewHistoryCount != null) {
                 tvReviewHistoryCount.setText(String.valueOf(totalReviews));
             }
@@ -143,25 +124,7 @@ public class ProfileActivity extends AppCompatActivity {
                 btnClose.setOnClickListener(v -> dialog.dismiss());
             }
 
-            SharedPreferences prefs = getSharedPreferences("PSRU_REVIEW_PREF", MODE_PRIVATE);
-            String reviewsJson = prefs.getString("review_list", "[]");
-
-            JSONArray jsonArray = new JSONArray(reviewsJson);
-            ArrayList<String[]> reviewList = new ArrayList<>();
-
-            if (jsonArray.length() == 0) {
-                reviewList.add(new String[]{"ธนวัฒน์ ศึกษาดี", "5.0", "บริการดีมาก สินค้าใช้งานได้ยอดเยี่ยมครับ", "18 มิ.ย. 2569"});
-            } else {
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    JSONObject obj = jsonArray.getJSONObject(i);
-                    reviewList.add(new String[]{
-                            obj.optString("reviewer", "ผู้ใช้งาน"),
-                            obj.optString("rating", "5.0"),
-                            obj.optString("comment", "-"),
-                            obj.optString("date", "")
-                    });
-                }
-            }
+            List<ReviewItem> reviewList = profileRepository.getReviewList();
 
             ListView lvReviewList = dialogView.findViewById(R.id.lvReviewList);
             BaseAdapter adapter = new BaseAdapter() {
@@ -177,17 +140,17 @@ public class ProfileActivity extends AppCompatActivity {
                     if (convertView == null) {
                         convertView = getLayoutInflater().inflate(R.layout.item_review_history, parent, false);
                     }
-                    String[] data = reviewList.get(position);
+                    ReviewItem data = reviewList.get(position);
 
                     TextView tvName = convertView.findViewById(R.id.tvReviewerName);
                     TextView tvRating = convertView.findViewById(R.id.tvReviewRating);
                     TextView tvComment = convertView.findViewById(R.id.tvReviewComment);
                     TextView tvDate = convertView.findViewById(R.id.tvReviewDate);
 
-                    if (tvName != null) tvName.setText(data[0]);
-                    if (tvRating != null) tvRating.setText("⭐ (" + data[1] + ")");
-                    if (tvComment != null) tvComment.setText(data[2]);
-                    if (tvDate != null) tvDate.setText(data[3]);
+                    if (tvName != null) tvName.setText(data.getReviewer());
+                    if (tvRating != null) tvRating.setText("⭐ (" + data.getRating() + ")");
+                    if (tvComment != null) tvComment.setText(data.getComment());
+                    if (tvDate != null) tvDate.setText(data.getDate());
 
                     return convertView;
                 }
@@ -213,32 +176,26 @@ public class ProfileActivity extends AppCompatActivity {
         super.onResume();
         loadRatingData();
         loadReviewCount();
+        loadAndDisplayMyPostsGrid(); // โหลดรายการโพสต์ใหม่ทุกครั้งที่กลับมาที่หน้านี้
     }
 
     private void loadUserProfile() {
         try {
-            SharedPreferences prefs = getSharedPreferences("PSRU_USER_PREF", MODE_PRIVATE);
-            String name = prefs.getString("USER_NAME", "กัญญาณี ศรีสุข");
-            String studentId = prefs.getString("USER_STUDENT_ID", "6812247005");
-            String imageUriStr = prefs.getString("USER_IMAGE", "");
-
-            String facebook = prefs.getString("USER_FACEBOOK", "Kanyanee Srisuk");
-            String instagram = prefs.getString("USER_INSTAGRAM", "kan_psru");
-            String phone = prefs.getString("USER_PHONE", "089-123-4567");
+            UserProfile profile = userRepository.getUserProfile();
 
             TextView tvProfileName = findViewById(R.id.tvProfileName);
-            if (tvProfileName != null) tvProfileName.setText(name);
+            if (tvProfileName != null) tvProfileName.setText(profile.getName());
 
             TextView tvProfileStudentId = findViewById(R.id.tvProfileStudentId);
-            if (tvProfileStudentId != null) tvProfileStudentId.setText("รหัสนักศึกษา: " + studentId);
+            if (tvProfileStudentId != null) tvProfileStudentId.setText("รหัสนักศึกษา: " + profile.getStudentId());
 
-            if (tvProfileFacebook != null) tvProfileFacebook.setText(facebook);
-            if (tvProfileInstagram != null) tvProfileInstagram.setText(instagram);
-            if (tvProfilePhone != null) tvProfilePhone.setText(phone);
+            if (tvProfileFacebook != null) tvProfileFacebook.setText(profile.getFacebook());
+            if (tvProfileInstagram != null) tvProfileInstagram.setText(profile.getInstagram());
+            if (tvProfilePhone != null) tvProfilePhone.setText(profile.getPhone());
 
             ImageView ivProfileImage = findViewById(R.id.ivProfileImage);
-            if (ivProfileImage != null && imageUriStr != null && !imageUriStr.isEmpty()) {
-                safelySetImageUri(ivProfileImage, imageUriStr);
+            if (ivProfileImage != null && profile.getImageUri() != null && !profile.getImageUri().isEmpty()) {
+                safelySetImageUri(ivProfileImage, profile.getImageUri());
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -247,9 +204,7 @@ public class ProfileActivity extends AppCompatActivity {
 
     private void loadRatingData() {
         try {
-            SharedPreferences prefs = getSharedPreferences("PSRU_USER_PREF", MODE_PRIVATE);
-            float averageRating = prefs.getFloat("USER_AVG_RATING", 4.9f);
-
+            float averageRating = userRepository.getAverageRating();
             if (tvReviewCount != null) {
                 tvReviewCount.setText(String.format(Locale.getDefault(), "%.1f", averageRating));
             }
@@ -263,53 +218,7 @@ public class ProfileActivity extends AppCompatActivity {
             if (layoutMyPostsGridContainer == null) return;
             layoutMyPostsGridContainer.removeAllViews();
 
-            List<PostItem> allPosts = new ArrayList<>();
-
-            try {
-                SharedPreferences prefsSwap = getSharedPreferences("PSRU_SWAP_PRODUCTS", MODE_PRIVATE);
-                String jsonSwap = prefsSwap.getString("product_list", "[]");
-                if (jsonSwap != null && jsonSwap.startsWith("[")) {
-                    JSONArray arrSwap = new JSONArray(jsonSwap);
-                    for (int i = 0; i < arrSwap.length(); i++) {
-                        JSONObject obj = arrSwap.optJSONObject(i);
-                        if (obj != null) {
-                            PostItem item = new PostItem();
-                            item.title = obj.optString("name", obj.optString("title", "ไม่มีชื่อสินค้า"));
-                            item.priceOrBudget = "฿" + obj.optString("price", "0");
-                            item.type = "ขาย";
-                            item.imageUri = obj.optString("image", "");
-                            item.sourceBoard = "SWAP";
-                            item.originalIndex = i;
-                            allPosts.add(item);
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            try {
-                SharedPreferences prefsWanted = getSharedPreferences("PSRU_WANTED_PRODUCTS", MODE_PRIVATE);
-                String jsonWanted = prefsWanted.getString("product_list", "[]");
-                if (jsonWanted != null && jsonWanted.startsWith("[")) {
-                    JSONArray arrWanted = new JSONArray(jsonWanted);
-                    for (int i = 0; i < arrWanted.length(); i++) {
-                        JSONObject obj = arrWanted.optJSONObject(i);
-                        if (obj != null) {
-                            PostItem item = new PostItem();
-                            item.title = obj.optString("name", obj.optString("title", "ไม่มีหัวข้อ"));
-                            item.priceOrBudget = "งบไม่เกิน " + obj.optString("price", obj.optString("budget", "0")) + " บาท";
-                            item.type = "ตามหา";
-                            item.imageUri = obj.optString("image", "");
-                            item.sourceBoard = "WANTED";
-                            item.originalIndex = i;
-                            allPosts.add(item);
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            List<PostItem> allPosts = profileRepository.getAllMyPosts();
 
             if (tvPostCount != null) {
                 tvPostCount.setText(String.valueOf(allPosts.size()));
@@ -360,27 +269,30 @@ public class ProfileActivity extends AppCompatActivity {
         card.setElevation(dpToPx(1));
 
         TextView tvBadge = new TextView(this);
-        tvBadge.setText(item.type);
+        tvBadge.setText(item.getType());
         tvBadge.setTextSize(9);
         tvBadge.setTextColor(0xFFFFFFFF);
         tvBadge.setPadding(dpToPx(6), dpToPx(2), dpToPx(6), dpToPx(2));
         tvBadge.getPaint().setFakeBoldText(true);
-        if (item.type.equals("ขาย")) {
+        if (item.getType().equals("ขาย")) {
             tvBadge.setBackgroundColor(0xFF00794C);
         } else {
             tvBadge.setBackgroundColor(0xFFD97706);
         }
         card.addView(tvBadge);
 
-        if (item.imageUri != null && !item.imageUri.isEmpty()) {
+        if (item.getImageUri() != null && !item.getImageUri().isEmpty()) {
             ImageView img = new ImageView(this);
             LinearLayout.LayoutParams imgParams = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, dpToPx(80)
             );
             imgParams.setMargins(0, dpToPx(6), 0, 0);
             img.setLayoutParams(imgParams);
-            img.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            safelySetImageUri(img, item.imageUri);
+
+            img.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            img.setBackgroundColor(0xFFF8F9FA);
+
+            safelySetImageUri(img, item.getImageUri());
             card.addView(img);
         } else {
             View viewImg = new View(this);
@@ -389,12 +301,12 @@ public class ProfileActivity extends AppCompatActivity {
             );
             viewParams.setMargins(0, dpToPx(6), 0, 0);
             viewImg.setLayoutParams(viewParams);
-            viewImg.setBackgroundColor(item.type.equals("ขาย") ? 0xFFE9ECEF : 0xFF343A40);
+            viewImg.setBackgroundColor(item.getType().equals("ขาย") ? 0xFFE9ECEF : 0xFF343A40);
             card.addView(viewImg);
         }
 
         TextView tvTitle = new TextView(this);
-        tvTitle.setText(item.title != null ? item.title : "");
+        tvTitle.setText(item.getTitle() != null ? item.getTitle() : "");
         tvTitle.setTextSize(12);
         tvTitle.setTextColor(0xFF333333);
         tvTitle.setMaxLines(2);
@@ -408,7 +320,7 @@ public class ProfileActivity extends AppCompatActivity {
         card.addView(tvTitle);
 
         TextView tvPrice = new TextView(this);
-        tvPrice.setText(item.priceOrBudget != null ? item.priceOrBudget : "");
+        tvPrice.setText(item.getPriceOrBudget() != null ? item.getPriceOrBudget() : "");
         tvPrice.setTextSize(12);
         tvPrice.setTextColor(0xFF00794C);
         tvPrice.getPaint().setFakeBoldText(true);
@@ -433,7 +345,7 @@ public class ProfileActivity extends AppCompatActivity {
         );
         delParams.setMargins(0, dpToPx(8), 0, 0);
         btnDelete.setLayoutParams(delParams);
-        btnDelete.setOnClickListener(v -> deletePost(item.sourceBoard, item.originalIndex));
+        btnDelete.setOnClickListener(v -> deletePost(item.getSourceBoard(), item.getOriginalIndex()));
         card.addView(btnDelete);
 
         return card;
@@ -441,6 +353,24 @@ public class ProfileActivity extends AppCompatActivity {
 
     private void safelySetImageUri(ImageView imageView, String uriStr) {
         try {
+            if (uriStr == null || uriStr.isEmpty()) {
+                imageView.setBackgroundColor(0xFFE9ECEF);
+                return;
+            }
+
+            if (!uriStr.startsWith("file://") && !uriStr.startsWith("content://") && !uriStr.startsWith("http")) {
+                try {
+                    byte[] decodedString = Base64.decode(uriStr, Base64.DEFAULT);
+                    Bitmap bitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                    if (bitmap != null) {
+                        imageView.setImageBitmap(bitmap);
+                        return;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
             if (uriStr.startsWith("file://")) {
                 Uri uri = Uri.parse(uriStr);
                 File imgFile = new File(uri.getPath());
@@ -469,25 +399,10 @@ public class ProfileActivity extends AppCompatActivity {
 
     private void deletePost(String sourceBoard, int index) {
         try {
-            if (sourceBoard.equals("SWAP")) {
-                SharedPreferences prefs = getSharedPreferences("PSRU_SWAP_PRODUCTS", MODE_PRIVATE);
-                JSONArray arr = new JSONArray(prefs.getString("product_list", "[]"));
-                JSONArray newArr = new JSONArray();
-                for (int i = 0; i < arr.length(); i++) {
-                    if (i != index) newArr.put(arr.getJSONObject(i));
-                }
-                prefs.edit().putString("product_list", newArr.toString()).apply();
-            } else if (sourceBoard.equals("WANTED")) {
-                SharedPreferences prefs = getSharedPreferences("PSRU_WANTED_PRODUCTS", MODE_PRIVATE);
-                JSONArray arr = new JSONArray(prefs.getString("product_list", "[]"));
-                JSONArray newArr = new JSONArray();
-                for (int i = 0; i < arr.length(); i++) {
-                    if (i != index) newArr.put(arr.getJSONObject(i));
-                }
-                prefs.edit().putString("product_list", newArr.toString()).apply();
-            }
-
+            profileRepository.deletePost(sourceBoard, index);
             Toast.makeText(this, "ลบประกาศเรียบร้อยแล้ว", Toast.LENGTH_SHORT).show();
+
+            // รีเฟรชข้อมูลและอัปเดตหน้าจอทันทีหลังจากลบสำเร็จ
             loadAndDisplayMyPostsGrid();
         } catch (Exception e) {
             e.printStackTrace();

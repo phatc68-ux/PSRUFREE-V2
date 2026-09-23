@@ -1,7 +1,6 @@
 package com.example.psruu;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -22,7 +21,7 @@ public class RegisterActivity extends AppCompatActivity {
 
     private static final int PICK_IMAGE_REQUEST = 1;
 
-    // ตัวแปรสำหรับฟอร์มสมัครสมาชิกและช่องทางการติดต่อ
+    // ตัวแปร UI (View)
     private EditText etRegName, etRegStudentId, etRegEmail, etRegPassword;
     private EditText etRegFacebook, etRegInstagram, etRegPhone;
     private LinearLayout btnSelectProfileImage;
@@ -30,19 +29,25 @@ public class RegisterActivity extends AppCompatActivity {
     private Button btnRegister;
 
     private String profileImageUriStr = "";
+    private UserRepository userRepository; // เรียกใช้ Repository (Model/Data Layer)
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
-        // ผูกตัวแปรกับหน้า UI (XML)
+        userRepository = new UserRepository(this);
+
+        initViews();
+        setupListeners();
+    }
+
+    private void initViews() {
         etRegName = findViewById(R.id.etRegName);
         etRegStudentId = findViewById(R.id.etRegStudentId);
         etRegEmail = findViewById(R.id.etRegEmail);
         etRegPassword = findViewById(R.id.etRegPassword);
 
-        // ฟิลด์ช่องทางการติดต่อ
         etRegFacebook = findViewById(R.id.etRegFacebook);
         etRegInstagram = findViewById(R.id.etRegInstagram);
         etRegPhone = findViewById(R.id.etRegPhone);
@@ -51,56 +56,41 @@ public class RegisterActivity extends AppCompatActivity {
         tvSelectedImageStatus = findViewById(R.id.tvSelectedImageStatus);
         btnRegister = findViewById(R.id.btnRegister);
         tvBackToLogin = findViewById(R.id.tvBackToLogin);
+    }
 
-        // กดเลือกรูปภาพจากเครื่อง
+    private void setupListeners() {
         btnSelectProfileImage.setOnClickListener(v -> openGallery());
 
-        // กดปุ่มสมัครสมาชิก
-        btnRegister.setOnClickListener(v -> {
-            String name = etRegName.getText().toString().trim();
-            String studentId = etRegStudentId.getText().toString().trim();
-            String email = etRegEmail.getText().toString().trim();
-            String password = etRegPassword.getText().toString().trim();
+        btnRegister.setOnClickListener(v -> handleRegistration());
 
-            // ดึงค่าช่องทางการติดต่อ
-            String facebook = etRegFacebook != null ? etRegFacebook.getText().toString().trim() : "";
-            String instagram = etRegInstagram != null ? etRegInstagram.getText().toString().trim() : "";
-            String phone = etRegPhone != null ? etRegPhone.getText().toString().trim() : "";
-
-            if (name.isEmpty() || studentId.isEmpty() || email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(RegisterActivity.this, "กรุณากรอกข้อมูลให้ครบทุกช่อง", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            if (profileImageUriStr.isEmpty()) {
-                Toast.makeText(RegisterActivity.this, "กรุณาเลือกรูปโปรไฟล์", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            // บันทึกข้อมูลลง SharedPreferences
-            SharedPreferences prefs = getSharedPreferences("PSRU_USER_PREF", MODE_PRIVATE);
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putString("USER_NAME", name);
-            editor.putString("USER_STUDENT_ID", studentId);
-            editor.putString("USER_EMAIL", email);
-            editor.putString("USER_PASSWORD", password);
-            editor.putString("USER_IMAGE", profileImageUriStr);
-
-            // บันทึกช่องทางการติดต่อเพิ่มเติม
-            editor.putString("USER_FACEBOOK", facebook);
-            editor.putString("USER_INSTAGRAM", instagram);
-            editor.putString("USER_PHONE", phone);
-
-            editor.apply();
-
-            Toast.makeText(RegisterActivity.this, "สมัครสมาชิกสำเร็จ!", Toast.LENGTH_SHORT).show();
-
-            // กลับไปหน้า Login
-            finish();
-        });
-
-        // กลับไปหน้า Login
         tvBackToLogin.setOnClickListener(v -> finish());
+    }
+
+    private void handleRegistration() {
+        String name = etRegName.getText().toString().trim();
+        String studentId = etRegStudentId.getText().toString().trim();
+        String email = etRegEmail.getText().toString().trim();
+        String password = etRegPassword.getText().toString().trim();
+
+        String facebook = etRegFacebook != null ? etRegFacebook.getText().toString().trim() : "";
+        String instagram = etRegInstagram != null ? etRegInstagram.getText().toString().trim() : "";
+        String phone = etRegPhone != null ? etRegPhone.getText().toString().trim() : "";
+
+        if (name.isEmpty() || studentId.isEmpty() || email.isEmpty() || password.isEmpty()) {
+            Toast.makeText(this, "กรุณากรอกข้อมูลให้ครบทุกช่อง", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (profileImageUriStr.isEmpty()) {
+            Toast.makeText(this, "กรุณาเลือกรูปโปรไฟล์", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // ส่งข้อมูลให้ Repository เป็นผู้จัดการบันทึกข้อมูล (แยก Business Logic ออกจาก Activity)
+        userRepository.registerUser(name, studentId, email, password, profileImageUriStr, facebook, instagram, phone);
+
+        Toast.makeText(this, "สมัครสมาชิกสำเร็จ!", Toast.LENGTH_SHORT).show();
+        finish();
     }
 
     private void openGallery() {
@@ -114,7 +104,6 @@ public class RegisterActivity extends AppCompatActivity {
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
             Uri sourceUri = data.getData();
 
-            // เนื่องจากเราคัดลอกไฟล์ลง Cache ภายในทันที จึงไม่ต้องขอ TakePersistableUriPermission ให้เกิด Error
             File savedFile = saveUriToInternalCache(sourceUri);
             if (savedFile != null) {
                 profileImageUriStr = Uri.fromFile(savedFile).toString();
